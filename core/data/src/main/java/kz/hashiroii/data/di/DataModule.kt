@@ -6,8 +6,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kz.hashiroii.data.network.NetworkMonitor
+import kz.hashiroii.data.repository.CurrencyRepositoryImpl
 import kz.hashiroii.data.repository.NotificationRepositoryImpl
 import kz.hashiroii.data.service.ServiceRecognizer
+import kz.hashiroii.domain.repository.CurrencyRepository
 import kz.hashiroii.domain.repository.NotificationRepository
 import javax.inject.Singleton
 
@@ -28,6 +31,18 @@ object DataModule {
     fun provideNotificationRepository(
         serviceRecognizer: ServiceRecognizer
     ): NotificationRepository {
-        return NotificationRepositoryImpl()
+        return NotificationRepositoryImpl(serviceRecognizer)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkMonitor(): NetworkMonitor {
+        return NetworkMonitor()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurrencyRepository(): CurrencyRepository {
+        return CurrencyRepositoryImpl()
     }
 }
