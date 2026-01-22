@@ -1,4 +1,6 @@
 package kz.hashiroii.home
 
-class HomeIntents {
+sealed interface HomeIntent {
+    data object LoadSubscriptions : HomeIntent
+    data object RefreshSubscriptions : HomeIntent
 }

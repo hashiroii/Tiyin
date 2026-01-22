@@ -1,4 +1,19 @@
 package kz.hashiroii.home
 
-class HomeUiState {
+import kz.hashiroii.domain.model.service.Subscription
+import kz.hashiroii.ui.UiText
+
+sealed interface HomeUiState {
+    data object Loading : HomeUiState
+    
+    data class Success(
+        val subscriptions: List<Subscription>,
+        val activeSubscriptionsCount: Int,
+        val totalCost: UiText,
+        val totalCostCurrency: String
+    ) : HomeUiState
+    
+    data class Error(
+        val message: UiText
+    ) : HomeUiState
 }
