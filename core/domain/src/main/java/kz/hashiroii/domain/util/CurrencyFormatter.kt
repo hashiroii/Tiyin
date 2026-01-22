@@ -20,7 +20,7 @@ object CurrencyFormatter {
         currentLocale = when (currency) {
             CurrencyCode.USD -> Locale.US
             CurrencyCode.EUR -> Locale.GERMANY
-            CurrencyCode.KZT -> Locale("kk", "KZ")
+            CurrencyCode.KZT -> Locale("kz", "KZ")
             CurrencyCode.RUB -> Locale("ru", "RU")
             CurrencyCode.GBP -> Locale.UK
         }
