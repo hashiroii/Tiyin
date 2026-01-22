@@ -1,11 +1,20 @@
 package kz.hashiroii.data.service
 
 import android.content.Context
+import kz.hashiroii.domain.model.service.ExtractedPaymentData
 import kz.hashiroii.domain.model.service.ServiceInfo
 import kz.hashiroii.domain.model.service.ServiceType
 import java.util.regex.Pattern
 
 class ServiceRecognizer(private val context: Context) {
+
+    private val BANK_PACKAGES = listOf(
+        "kz.kaspi.yield",
+        "com.halykbank",
+        "kz.kaspi.kaspi",
+        "kz.halykbank.mobile",
+        "kz.jysanbank.mobile"
+    )
 
     private val serviceMap = mapOf(
         "com.spotify.music" to ServiceMapping("Spotify", 0xFF1DB954, 0xFF191414, ServiceType.STREAMING),
@@ -38,19 +47,25 @@ class ServiceRecognizer(private val context: Context) {
         Pattern.compile("(?i)(quarterly|квартал)", Pattern.CASE_INSENSITIVE) to "QUARTERLY"
     )
 
-    fun recognizeService(packageName: String, notificationTitle: String?, notificationText: String?): ServiceInfo? {
-        val mapping = serviceMap[packageName]
-        if (mapping != null) {
-            return ServiceInfo(
-                name = mapping.name,
-                logoResId = 0,
-                primaryColor = mapping.primaryColor,
-                secondaryColor = mapping.secondaryColor,
-                serviceType = mapping.serviceType
-            )
-        }
+    private val recurringPaymentPatterns = listOf(
+        Pattern.compile("(?i)(subscription|подписка|абонемент|автопродление|recurring|повторяющийся)", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("(?i)(monthly|ежемесячно|yearly|ежегодно|weekly|еженедельно)", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("(?i)(auto.?renew|автоплатеж|автосписание)", Pattern.CASE_INSENSITIVE)
+    )
 
+    private val oneTimePaymentPatterns = listOf(
+        Pattern.compile("(?i)(one.?time|разов|единоразов|single|один раз)", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("(?i)(purchase|покупка|оплата|платеж)(?!.*(subscription|подписка|recurring))", Pattern.CASE_INSENSITIVE)
+    )
+
+    private val amountPattern = Pattern.compile(
+        "(\\d+[.,]?\\d*)\\s*([₸₽\\$€£]|тенге|рубль|dollar|euro|USD|EUR|KZT|RUB)",
+        Pattern.CASE_INSENSITIVE
+    )
+
+    fun recognizeService(packageName: String, notificationTitle: String?, notificationText: String?): ServiceInfo? {
         val combinedText = "${notificationTitle ?: ""} ${notificationText ?: ""}".lowercase()
+        
         for ((_, serviceMapping) in serviceMap) {
             if (combinedText.contains(serviceMapping.name.lowercase())) {
                 return ServiceInfo(
@@ -61,6 +76,17 @@ class ServiceRecognizer(private val context: Context) {
                     serviceType = serviceMapping.serviceType
                 )
             }
+        }
+
+        val mapping = serviceMap[packageName]
+        if (mapping != null) {
+            return ServiceInfo(
+                name = mapping.name,
+                logoResId = 0,
+                primaryColor = mapping.primaryColor,
+                secondaryColor = mapping.secondaryColor,
+                serviceType = mapping.serviceType
+            )
         }
 
         val appName = getAppName(packageName)
@@ -81,6 +107,57 @@ class ServiceRecognizer(private val context: Context) {
             }
         }
         return "MONTHLY"
+    }
+
+    fun isBankPackage(packageName: String): Boolean {
+        return BANK_PACKAGES.contains(packageName)
+    }
+
+    fun isRecurringPayment(notificationTitle: String?, notificationText: String?): Boolean {
+        val combined = "${notificationTitle ?: ""} ${notificationText ?: ""}"
+        
+        for (pattern in recurringPaymentPatterns) {
+            if (pattern.matcher(combined).find()) {
+                return true
+            }
+        }
+        
+        for (pattern in oneTimePaymentPatterns) {
+            if (pattern.matcher(combined).find()) {
+                return false
+            }
+        }
+        
+        return false
+    }
+
+    fun extractPaymentData(notificationTitle: String?, notificationText: String?): ExtractedPaymentData? {
+        val combined = "${notificationTitle ?: ""} ${notificationText ?: ""}"
+        val matcher = amountPattern.matcher(combined)
+        
+        if (matcher.find()) {
+            val amount = matcher.group(1) ?: ""
+            val currencySymbol = matcher.group(2) ?: ""
+            
+            val currency = when {
+                currencySymbol.contains("₸", ignoreCase = true) || currencySymbol.contains("тенге", ignoreCase = true) -> "KZT"
+                currencySymbol.contains("₽", ignoreCase = true) || currencySymbol.contains("рубл", ignoreCase = true) -> "RUB"
+                currencySymbol.contains("$", ignoreCase = true) || currencySymbol.contains("dollar", ignoreCase = true) || currencySymbol.contains("USD", ignoreCase = true) -> "USD"
+                currencySymbol.contains("€", ignoreCase = true) || currencySymbol.contains("euro", ignoreCase = true) || currencySymbol.contains("EUR", ignoreCase = true) -> "EUR"
+                currencySymbol.contains("£", ignoreCase = true) || currencySymbol.contains("GBP", ignoreCase = true) -> "GBP"
+                else -> currencySymbol.uppercase()
+            }
+            
+            val isRecurring = isRecurringPayment(notificationTitle, notificationText)
+            
+            return ExtractedPaymentData(
+                amount = amount.replace(",", "."),
+                currency = currency,
+                isRecurring = isRecurring
+            )
+        }
+        
+        return null
     }
 
     private fun getAppName(packageName: String): String {
