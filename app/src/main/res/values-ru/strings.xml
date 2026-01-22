@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Тиын</string>
+    
+    <string name="stat_active">Активные</string>
+    <string name="stat_spending">Расходы</string>
+    <string name="stat_subscription">подписка</string>
+    <string name="stat_subscriptions">подписки</string>
+</resources>

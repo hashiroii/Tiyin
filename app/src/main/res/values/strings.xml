@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Tiyin</string>
+    
+    <string name="stat_active">Active</string>
+    <string name="stat_spending">Spending</string>
+    <string name="stat_subscription">subscription</string>
+    <string name="stat_subscriptions">subscriptions</string>
 </resources>
