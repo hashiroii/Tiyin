@@ -6,12 +6,18 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kz.hashiroii.data.datasource.MockSubscriptionDataSource
 import kz.hashiroii.data.network.NetworkMonitor
 import kz.hashiroii.data.repository.CurrencyRepositoryImpl
 import kz.hashiroii.data.repository.NotificationRepositoryImpl
+import kz.hashiroii.data.repository.PreferencesRepositoryImpl
+import kz.hashiroii.data.service.AppNameResolver
+import kz.hashiroii.data.service.LogoService
 import kz.hashiroii.data.service.ServiceRecognizer
+import kz.hashiroii.data.service.SubscriptionDetectionService
 import kz.hashiroii.domain.repository.CurrencyRepository
 import kz.hashiroii.domain.repository.NotificationRepository
+import kz.hashiroii.domain.repository.PreferencesRepository
 import javax.inject.Singleton
 
 @Module
@@ -21,17 +27,19 @@ object DataModule {
     @Provides
     @Singleton
     fun provideServiceRecognizer(
-        @ApplicationContext context: Context
+        logoService: LogoService,
+        appNameResolver: AppNameResolver
     ): ServiceRecognizer {
-        return ServiceRecognizer(context)
+        return ServiceRecognizer(logoService, appNameResolver)
     }
 
     @Provides
     @Singleton
     fun provideNotificationRepository(
-        serviceRecognizer: ServiceRecognizer
+        subscriptionDetectionService: SubscriptionDetectionService,
+        mockDataSource: MockSubscriptionDataSource
     ): NotificationRepository {
-        return NotificationRepositoryImpl(serviceRecognizer)
+        return NotificationRepositoryImpl(subscriptionDetectionService, mockDataSource)
     }
 
     @Provides
@@ -44,5 +52,13 @@ object DataModule {
     @Singleton
     fun provideCurrencyRepository(): CurrencyRepository {
         return CurrencyRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun providePreferencesRepository(
+        preferencesRepositoryImpl: PreferencesRepositoryImpl
+    ): PreferencesRepository {
+        return preferencesRepositoryImpl
     }
 }

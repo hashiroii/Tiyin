@@ -14,7 +14,11 @@ class NotificationListener : NotificationListenerService() {
     companion object {
         const val TAG = "NotificationListener"
 
-        var notificationCallback: ((StatusBarNotification) -> Unit)? = null
+        private var notificationHandler: ((StatusBarNotification) -> Unit)? = null
+
+        fun setNotificationHandler(handler: (StatusBarNotification) -> Unit) {
+            notificationHandler = handler
+        }
 
         private val SUBSCRIPTION_PATTERN = Pattern.compile(
             "(?i)(subscription|подписка|абонемент|payment|платеж|оплата|billing|биллинг|" +
@@ -81,12 +85,12 @@ class NotificationListener : NotificationListenerService() {
                     if (isBankPackage) {
                         if (isBankRecurringPayment(title?.toString(), text?.toString())) {
                             Log.d(TAG, "Bank recurring payment detected")
-                            notificationCallback?.invoke(notification)
+                            notificationHandler?.invoke(notification)
                         }
                     } else {
                         if (isSubscriptionNotification(title?.toString(), text?.toString())) {
                             Log.d(TAG, "Subscription notification detected")
-                            notificationCallback?.invoke(notification)
+                            notificationHandler?.invoke(notification)
                         }
                     }
                 } catch (e: Exception) {
