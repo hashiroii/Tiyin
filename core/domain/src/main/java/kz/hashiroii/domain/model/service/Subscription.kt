@@ -1,5 +1,6 @@
 package kz.hashiroii.domain.model.service
 
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -13,13 +14,13 @@ enum class SubscriptionPeriod {
 
 data class Subscription(
     val serviceInfo: ServiceInfo,
-    val cost: String,
+    val amount: BigDecimal,
+    val currency: String,
     val period: SubscriptionPeriod,
     val nextPaymentDate: LocalDate,
     val currentPaymentDate: LocalDate
 ) {
-    fun daysUntilNextPayment(): Int {
-        val today = LocalDate.now()
+    fun daysUntilNextPayment(today: LocalDate = LocalDate.now()): Int {
         return if (nextPaymentDate.isAfter(today) || nextPaymentDate.isEqual(today)) {
             ChronoUnit.DAYS.between(today, nextPaymentDate).toInt()
         } else {
@@ -27,7 +28,7 @@ data class Subscription(
         }
     }
 
-    fun progressPercentage(): Float {
+    fun progressPercentage(today: LocalDate = LocalDate.now()): Float {
         val totalDays = when (period) {
             SubscriptionPeriod.MONTHLY -> 30
             SubscriptionPeriod.YEARLY -> 365
@@ -35,7 +36,7 @@ data class Subscription(
             SubscriptionPeriod.DAILY -> 1
             SubscriptionPeriod.QUARTERLY -> 90
         }
-        val daysPassed = ChronoUnit.DAYS.between(currentPaymentDate, LocalDate.now()).toInt()
+        val daysPassed = ChronoUnit.DAYS.between(currentPaymentDate, today).toInt()
         return (daysPassed.toFloat() / totalDays).coerceIn(0f, 1f)
     }
 }
