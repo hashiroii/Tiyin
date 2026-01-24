@@ -39,12 +39,12 @@ class SubscriptionDetectionService @Inject constructor(
 
         return SubscriptionEntity(
             serviceName = serviceInfo.name,
+            serviceDomain = serviceInfo.domain,
             cost = cost,
             period = period.name,
             nextPaymentDate = nextPaymentDate,
             currentPaymentDate = currentPaymentDate,
             serviceType = serviceInfo.serviceType.name,
-            logoUrl = serviceInfo.logoUrls.firstOrNull(),
             primaryColor = serviceInfo.primaryColor,
             secondaryColor = serviceInfo.secondaryColor
         )

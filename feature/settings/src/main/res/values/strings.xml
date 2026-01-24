@@ -1,0 +1,31 @@
+<resources>
+    <string name="settings_general_preferences">General Preferences</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_currency">Currency</string>
+    <string name="settings_card_view">Card View</string>
+    <string name="settings_show_spending_card">Show Spending Card</string>
+    <string name="settings_system">System</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_about">About</string>
+    <string name="settings_open_source_feedback">Open Source Feedback</string>
+    <string name="settings_about_tiyin">About Tiyin</string>
+    <string name="settings_open_source_licenses">Open Source Licenses</string>
+    <string name="settings_delete_account">Delete Account</string>
+    <string name="settings_delete">Delete</string>
+    
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_system">System</string>
+    
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_russian">Russian</string>
+    <string name="settings_language_kazakh">Kazakh</string>
+    
+    <string name="settings_select_theme">Select Theme</string>
+    <string name="settings_select_language">Select Language</string>
+    <string name="settings_select_currency">Select Currency</string>
+    
+    <string name="nav_back">Back</string>
+</resources>

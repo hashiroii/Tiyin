@@ -10,7 +10,8 @@ sealed interface HomeUiState {
         val subscriptions: List<Subscription>,
         val activeSubscriptionsCount: Int,
         val totalCost: Double,
-        val totalCostCurrency: String
+        val totalCostCurrency: String,
+        val logoUrls: Map<String, String?> = emptyMap()
     ) : HomeUiState
     
     data class Error(

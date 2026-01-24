@@ -8,10 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kz.hashiroii.data.datasource.MockSubscriptionDataSource
 import kz.hashiroii.data.mapper.SubscriptionMapper
 import kz.hashiroii.data.model.SubscriptionEntity
@@ -41,23 +39,24 @@ class NotificationRepositoryImpl @Inject constructor(
         observeNotifications()
     }
 
-    private fun loadMockData() {
-        _subscriptionEntities.value = mockDataSource.getMockSubscriptions()
-    }
-
     private fun setupNotificationListener() {
         NotificationListener.setNotificationHandler { notification ->
             _notificationEvents.value = notification
         }
     }
 
+    private fun loadMockData() {
+        _subscriptionEntities.value = mockDataSource.getMockSubscriptions()
+    }
+
     private fun observeNotifications() {
-        notificationEvents
-            .onEach { notification ->
+        repositoryScope.launch {
+            notificationEvents.collect { notification ->
                 notification?.let { processNotification(it) }
             }
-            .launchIn(repositoryScope)
+        }
     }
+
 
     private fun processNotification(notification: StatusBarNotification) {
         val entity = subscriptionDetectionService.detectSubscription(notification)

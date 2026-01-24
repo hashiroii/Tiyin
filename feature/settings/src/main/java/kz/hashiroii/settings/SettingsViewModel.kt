@@ -15,7 +15,6 @@ import kz.hashiroii.domain.usecase.preferences.SetLanguageUseCase
 import kz.hashiroii.domain.usecase.preferences.SetNotificationsEnabledUseCase
 import kz.hashiroii.domain.usecase.preferences.SetShowSpendingCardUseCase
 import kz.hashiroii.domain.usecase.preferences.SetThemeUseCase
-import kz.hashiroii.ui.LocaleHelper
 import javax.inject.Inject
 
 @HiltViewModel

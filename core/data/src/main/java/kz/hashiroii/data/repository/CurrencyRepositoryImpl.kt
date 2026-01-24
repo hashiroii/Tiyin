@@ -13,7 +13,8 @@ class CurrencyRepositoryImpl @Inject constructor() : CurrencyRepository {
     private val exchangeRates = mapOf(
         "USD" to 480.0,
         "KZT" to 1.0,
-        "EUR" to 510.0
+        "EUR" to 510.0,
+        "RUB" to 6.0
     )
 
     private val _ratesFlow = MutableStateFlow(exchangeRates)

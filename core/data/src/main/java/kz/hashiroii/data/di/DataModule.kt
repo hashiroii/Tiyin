@@ -1,10 +1,8 @@
 package kz.hashiroii.data.di
 
-import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kz.hashiroii.data.datasource.MockSubscriptionDataSource
 import kz.hashiroii.data.network.NetworkMonitor
@@ -12,7 +10,6 @@ import kz.hashiroii.data.repository.CurrencyRepositoryImpl
 import kz.hashiroii.data.repository.NotificationRepositoryImpl
 import kz.hashiroii.data.repository.PreferencesRepositoryImpl
 import kz.hashiroii.data.service.AppNameResolver
-import kz.hashiroii.data.service.LogoService
 import kz.hashiroii.data.service.ServiceRecognizer
 import kz.hashiroii.data.service.SubscriptionDetectionService
 import kz.hashiroii.domain.repository.CurrencyRepository
@@ -27,10 +24,9 @@ object DataModule {
     @Provides
     @Singleton
     fun provideServiceRecognizer(
-        logoService: LogoService,
         appNameResolver: AppNameResolver
     ): ServiceRecognizer {
-        return ServiceRecognizer(logoService, appNameResolver)
+        return ServiceRecognizer(appNameResolver)
     }
 
     @Provides

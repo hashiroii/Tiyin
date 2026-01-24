@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,9 +28,8 @@ import kz.hashiroii.domain.model.service.ServiceInfo
 import kz.hashiroii.domain.model.service.ServiceType
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
+import kz.hashiroii.home.R
 import kz.hashiroii.ui.ActiveSubscriptionsRow
-import kz.hashiroii.ui.CachedStringProvider
-import kz.hashiroii.ui.rememberCachedStringProvider
 import kz.hashiroii.ui.SubscriptionCard
 import kz.hashiroii.ui.TotalSpendingCard
 import kz.hashiroii.ui.UiText
@@ -72,26 +72,6 @@ fun HomeScreen(
             }
             
             is HomeUiState.Success -> {
-                val stringProvider = rememberCachedStringProvider()
-                
-                val context = LocalContext.current
-                val packageName = context.packageName
-                
-                val totalSpendingTitle = remember {
-                    stringProvider.getString(
-                        resourceName = "total_spending",
-                        packageName = packageName,
-                        default = "Total Spending"
-                    )
-                }
-                val activeSubscriptionsLabel = remember {
-                    stringProvider.getString(
-                        resourceName = "active_subscriptions",
-                        packageName = packageName,
-                        default = "Active Subscriptions"
-                    )
-                }
-                
                 val spendingAmount = CurrencyFormatter.format(
                     uiState.totalCost,
                     uiState.totalCostCurrency
@@ -103,7 +83,7 @@ fun HomeScreen(
                 ) {
                     item {
                         TotalSpendingCard(
-                            title = totalSpendingTitle,
+                            title = stringResource(R.string.total_spending),
                             amount = spendingAmount,
                             currency = uiState.totalCostCurrency
                         )
@@ -112,7 +92,7 @@ fun HomeScreen(
                     item {
                         ActiveSubscriptionsRow(
                             count = uiState.activeSubscriptionsCount,
-                            label = activeSubscriptionsLabel,
+                            label = stringResource(R.string.active_subscriptions),
                             onSortClick = {
                                 // TODO: Implement sort functionality
                             }
@@ -123,7 +103,10 @@ fun HomeScreen(
                         items = uiState.subscriptions,
                         key = { it.serviceInfo.name }
                     ) { subscription ->
-                        SubscriptionCard(subscription = subscription)
+                        SubscriptionCard(
+                            subscription = subscription,
+                            logoUrl = uiState.logoUrls[subscription.serviceInfo.domain]
+                        )
                     }
                 }
             }
@@ -192,6 +175,7 @@ private fun HomeScreenSuccessLightPreview() {
                         Subscription(
                             serviceInfo = ServiceInfo(
                                 name = "Spotify",
+                                domain = "spotify.com",
                                 logoResId = 0,
                                 primaryColor = 0xFF1DB954,
                                 secondaryColor = 0xFF191414,
@@ -206,6 +190,7 @@ private fun HomeScreenSuccessLightPreview() {
                         Subscription(
                             serviceInfo = ServiceInfo(
                                 name = "Netflix",
+                                domain = "netflix.com",
                                 logoResId = 0,
                                 primaryColor = 0xFFE50914,
                                 secondaryColor = 0xFF000000,
@@ -241,6 +226,7 @@ private fun HomeScreenSuccessDarkPreview() {
                         Subscription(
                             serviceInfo = ServiceInfo(
                                 name = "Spotify",
+                                domain = "spotify.com",
                                 logoResId = 0,
                                 primaryColor = 0xFF1DB954,
                                 secondaryColor = 0xFF191414,

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -28,7 +29,6 @@ import kz.hashiroii.navigation.Profile
 import kz.hashiroii.navigation.Settings
 import kz.hashiroii.tiyin.navigation.TiyinNavHost
 import kz.hashiroii.tiyin.ui.rememberTiyinAppState
-import kz.hashiroii.ui.LocaleHelper
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -39,19 +39,6 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var getPreferencesUseCase: GetPreferencesUseCase
-    
-    override fun attachBaseContext(newBase: Context) {
-        val prefs = newBase.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val languageCode = prefs.getString("language", "") ?: ""
-        
-        val wrappedContext = if (languageCode.isNotEmpty() && languageCode != "System") {
-            LocaleHelper.wrap(newBase, languageCode)
-        } else {
-            newBase
-        }
-        
-        super.attachBaseContext(wrappedContext)
-    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

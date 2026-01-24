@@ -10,8 +10,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kz.hashiroii.domain.usecase.logo.GetLogoUrlUseCase
+import kz.hashiroii.domain.usecase.logo.PrefetchLogosUseCase
 import kz.hashiroii.domain.usecase.preferences.GetCurrencyUseCase
 import kz.hashiroii.domain.usecase.subscription.CalculateTotalCostUseCase
 import kz.hashiroii.domain.usecase.subscription.GetSubscriptionsUseCase
@@ -24,7 +27,9 @@ class HomeViewModel @Inject constructor(
     private val getSubscriptionsUseCase: GetSubscriptionsUseCase,
     private val refreshSubscriptionsUseCase: RefreshSubscriptionsUseCase,
     private val calculateTotalCostUseCase: CalculateTotalCostUseCase,
-    private val getCurrencyUseCase: GetCurrencyUseCase
+    private val getCurrencyUseCase: GetCurrencyUseCase,
+    private val getLogoUrlUseCase: GetLogoUrlUseCase,
+    private val prefetchLogosUseCase: PrefetchLogosUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = getCurrencyUseCase()
@@ -33,14 +38,45 @@ class HomeViewModel @Inject constructor(
                 getSubscriptionsUseCase(),
                 calculateTotalCostUseCase(currency)
             ) { subscriptions, totalCostResult ->
+                subscriptions to totalCostResult
+            }
+            .flatMapLatest { (subscriptions, totalCostResult) ->
                 val activeCount = subscriptions.size
+                val domains = subscriptions.map { it.serviceInfo.domain }.distinct()
                 
-                HomeUiState.Success(
-                    subscriptions = subscriptions,
-                    activeSubscriptionsCount = activeCount,
-                    totalCost = totalCostResult.total,
-                    totalCostCurrency = totalCostResult.targetCurrency
-                ) as HomeUiState
+                viewModelScope.launch {
+                    prefetchLogosUseCase(domains)
+                }
+                
+                if (domains.isEmpty()) {
+                    kotlinx.coroutines.flow.flowOf(
+                        HomeUiState.Success(
+                            subscriptions = subscriptions,
+                            activeSubscriptionsCount = activeCount,
+                            totalCost = totalCostResult.total,
+                            totalCostCurrency = totalCostResult.targetCurrency,
+                            logoUrls = emptyMap()
+                        ) as HomeUiState
+                    )
+                } else {
+                    val logoUrlFlows = domains.map { domain ->
+                        getLogoUrlUseCase(domain).map { domain to it }
+                    }
+                    
+                    combine(logoUrlFlows) { logoUrlPairs ->
+                        val logoUrlsMap = logoUrlPairs.mapNotNull { 
+                            it as? Pair<String, String?>
+                        }.toMap()
+                        
+                        HomeUiState.Success(
+                            subscriptions = subscriptions,
+                            activeSubscriptionsCount = activeCount,
+                            totalCost = totalCostResult.total,
+                            totalCostCurrency = totalCostResult.targetCurrency,
+                            logoUrls = logoUrlsMap
+                        ) as HomeUiState
+                    }
+                }
             }
             .catch { e ->
                 emit(

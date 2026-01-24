@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kz.hashiroii.designsystem.TiyinChip
 import kz.hashiroii.designsystem.theme.TiyinTheme
+import kz.hashiroii.ui.util.CurrencyFormatter
 
 @Composable
 fun TotalSpendingCard(

@@ -33,21 +33,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.delay
-import kz.hashiroii.ui.CachedStringProvider
-import kz.hashiroii.ui.rememberCachedStringProvider
+import kz.hashiroii.settings.R
 
 @Composable
 fun SettingsRoute(
@@ -116,8 +114,6 @@ private fun SettingsContent(
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-    val packageName = context.packageName
-    val stringProvider = rememberCachedStringProvider()
     
     var showThemeDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
@@ -132,8 +128,6 @@ private fun SettingsContent(
             GeneralPreferencesCard(
                 uiState = uiState,
                 onIntent = onIntent,
-                stringProvider = stringProvider,
-                packageName = packageName,
                 onThemeClick = { showThemeDialog = true },
                 onLanguageClick = { showLanguageDialog = true },
                 onCurrencyClick = { showCurrencyDialog = true }
@@ -144,8 +138,6 @@ private fun SettingsContent(
             SystemCard(
                 uiState = uiState,
                 onIntent = onIntent,
-                stringProvider = stringProvider,
-                packageName = packageName,
                 onNotificationsClick = {
                     context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                         putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
@@ -157,17 +149,13 @@ private fun SettingsContent(
         item {
             AboutCard(
                 onIntent = onIntent,
-                uriHandler = uriHandler,
-                stringProvider = stringProvider,
-                packageName = packageName
+                uriHandler = uriHandler
             )
         }
         
         item {
             AccountCard(
-                onIntent = onIntent,
-                stringProvider = stringProvider,
-                packageName = packageName
+                onIntent = onIntent
             )
         }
     }
@@ -179,9 +167,7 @@ private fun SettingsContent(
                 onIntent(SettingsIntent.UpdateTheme(theme))
                 showThemeDialog = false
             },
-            onDismiss = { showThemeDialog = false },
-            stringProvider = stringProvider,
-            packageName = packageName
+            onDismiss = { showThemeDialog = false }
         )
     }
     
@@ -192,9 +178,7 @@ private fun SettingsContent(
                 onIntent(SettingsIntent.UpdateLanguage(language))
                 showLanguageDialog = false
             },
-            onDismiss = { showLanguageDialog = false },
-            stringProvider = stringProvider,
-            packageName = packageName
+            onDismiss = { showLanguageDialog = false }
         )
     }
     
@@ -205,9 +189,7 @@ private fun SettingsContent(
                 onIntent(SettingsIntent.UpdateCurrency(currency))
                 showCurrencyDialog = false
             },
-            onDismiss = { showCurrencyDialog = false },
-            stringProvider = stringProvider,
-            packageName = packageName
+            onDismiss = { showCurrencyDialog = false }
         )
     }
 }
@@ -216,8 +198,6 @@ private fun SettingsContent(
 private fun GeneralPreferencesCard(
     uiState: SettingsUiState.Success,
     onIntent: (SettingsIntent) -> Unit,
-    stringProvider: CachedStringProvider,
-    packageName: String,
     onThemeClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onCurrencyClick: () -> Unit
@@ -240,11 +220,7 @@ private fun GeneralPreferencesCard(
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
-                    text = stringProvider.getString(
-                        resourceName = "settings_general_preferences",
-                        packageName = packageName,
-                        default = "General Preferences"
-                    ),
+                    text = stringResource(R.string.settings_general_preferences),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -253,12 +229,8 @@ private fun GeneralPreferencesCard(
             HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_theme",
-                    packageName = packageName,
-                    default = "Theme"
-                ),
-                value = uiState.theme.displayName(stringProvider, packageName),
+                label = stringResource(R.string.settings_theme),
+                value = uiState.theme.displayName(),
                 onClick = onThemeClick
             )
 
@@ -269,12 +241,8 @@ private fun GeneralPreferencesCard(
             )
 
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_language",
-                    packageName = packageName,
-                    default = "Language"
-                ),
-                value = uiState.language.displayName(stringProvider, packageName),
+                label = stringResource(R.string.settings_language),
+                value = uiState.language.displayName(),
                 onClick = onLanguageClick
             )
 
@@ -285,11 +253,7 @@ private fun GeneralPreferencesCard(
             )
 
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_currency",
-                    packageName = packageName,
-                    default = "Currency"
-                ),
+                label = stringResource(R.string.settings_currency),
                 value = uiState.currency,
                 onClick = onCurrencyClick
             )
@@ -297,11 +261,7 @@ private fun GeneralPreferencesCard(
             Divider(modifier = Modifier.padding(horizontal = 16.dp))
             
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_card_view",
-                    packageName = packageName,
-                    default = "Card View"
-                ),
+                label = stringResource(R.string.settings_card_view),
                 value = uiState.cardView,
                 onClick = { },
                 showChevron = true
@@ -321,11 +281,7 @@ private fun GeneralPreferencesCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringProvider.getString(
-                        resourceName = "settings_show_spending_card",
-                        packageName = packageName,
-                        default = "Show Spending Card"
-                    ),
+                    text = stringResource(R.string.settings_show_spending_card),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Switch(
@@ -341,8 +297,6 @@ private fun GeneralPreferencesCard(
 private fun SystemCard(
     uiState: SettingsUiState.Success,
     onIntent: (SettingsIntent) -> Unit,
-    stringProvider: CachedStringProvider,
-    packageName: String,
     onNotificationsClick: () -> Unit
 ) {
     OutlinedCard(
@@ -350,11 +304,7 @@ private fun SystemCard(
     ) {
         Column {
             Text(
-                text = stringProvider.getString(
-                    resourceName = "settings_system",
-                    packageName = packageName,
-                    default = "System"
-                ),
+                text = stringResource(R.string.settings_system),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(16.dp)
@@ -363,11 +313,7 @@ private fun SystemCard(
             HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_notifications",
-                    packageName = packageName,
-                    default = "Notifications"
-                ),
+                label = stringResource(R.string.settings_notifications),
                 value = "",
                 onClick = onNotificationsClick
             )
@@ -378,20 +324,14 @@ private fun SystemCard(
 @Composable
 private fun AboutCard(
     onIntent: (SettingsIntent) -> Unit,
-    uriHandler: UriHandler,
-    stringProvider: CachedStringProvider,
-    packageName: String
+    uriHandler: UriHandler
 ) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
             Text(
-                text = stringProvider.getString(
-                    resourceName = "settings_about",
-                    packageName = packageName,
-                    default = "About"
-                ),
+                text = stringResource(R.string.settings_about),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(16.dp)
@@ -400,11 +340,7 @@ private fun AboutCard(
             HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_open_source_feedback",
-                    packageName = packageName,
-                    default = "Open Source Feedback"
-                ),
+                label = stringResource(R.string.settings_open_source_feedback),
                 value = "",
                 onClick = { onIntent(SettingsIntent.OpenFeedback) }
             )
@@ -416,11 +352,7 @@ private fun AboutCard(
             )
 
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_about_tiyin",
-                    packageName = packageName,
-                    default = "About Tiyin"
-                ),
+                label = stringResource(R.string.settings_about_tiyin),
                 value = "",
                 onClick = { onIntent(SettingsIntent.OpenAbout) }
             )
@@ -432,11 +364,7 @@ private fun AboutCard(
             )
 
             SettingsRow(
-                label = stringProvider.getString(
-                    resourceName = "settings_open_source_licenses",
-                    packageName = packageName,
-                    default = "Open Source Licenses"
-                ),
+                label = stringResource(R.string.settings_open_source_licenses),
                 value = "",
                 onClick = { onIntent(SettingsIntent.OpenLicenses) }
             )
@@ -446,9 +374,7 @@ private fun AboutCard(
 
 @Composable
 private fun AccountCard(
-    onIntent: (SettingsIntent) -> Unit,
-    stringProvider: CachedStringProvider,
-    packageName: String
+    onIntent: (SettingsIntent) -> Unit
 ) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth()
@@ -461,21 +387,13 @@ private fun AccountCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = stringProvider.getString(
-                    resourceName = "settings_delete_account",
-                    packageName = packageName,
-                    default = "Delete Account"
-                ),
+                text = stringResource(R.string.settings_delete_account),
                 style = MaterialTheme.typography.bodyLarge
             )
             TextButton(
                 onClick = { onIntent(SettingsIntent.DeleteAccount) }
             ) {
-                Text(stringProvider.getString(
-                    resourceName = "settings_delete",
-                    packageName = packageName,
-                    default = "Delete"
-                ))
+                Text(stringResource(R.string.settings_delete))
             }
         }
     }
@@ -526,18 +444,12 @@ private fun SettingsRow(
 private fun ThemeSelectionDialog(
     currentTheme: ThemePreference,
     onThemeSelected: (ThemePreference) -> Unit,
-    onDismiss: () -> Unit,
-    stringProvider: CachedStringProvider,
-    packageName: String
+    onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(stringProvider.getString(
-                resourceName = "settings_select_theme",
-                packageName = packageName,
-                default = "Select Theme"
-            ))
+            Text(stringResource(R.string.settings_select_theme))
         },
         text = {
             Column {
@@ -554,7 +466,7 @@ private fun ThemeSelectionDialog(
                             onClick = { onThemeSelected(theme) }
                         )
                         Text(
-                            text = theme.displayName(stringProvider, packageName),
+                            text = theme.displayName(),
                             modifier = Modifier.padding(start = 8.dp),
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -564,11 +476,7 @@ private fun ThemeSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringProvider.getString(
-                    resourceName = "nav_back",
-                    packageName = packageName,
-                    default = "Back"
-                ))
+                Text(stringResource(R.string.nav_back))
             }
         }
     )
@@ -578,18 +486,12 @@ private fun ThemeSelectionDialog(
 private fun LanguageSelectionDialog(
     currentLanguage: LanguagePreference,
     onLanguageSelected: (LanguagePreference) -> Unit,
-    onDismiss: () -> Unit,
-    stringProvider: CachedStringProvider,
-    packageName: String
+    onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(stringProvider.getString(
-                resourceName = "settings_select_language",
-                packageName = packageName,
-                default = "Select Language"
-            ))
+            Text(stringResource(R.string.settings_select_language))
         },
         text = {
             Column {
@@ -606,7 +508,7 @@ private fun LanguageSelectionDialog(
                             onClick = { onLanguageSelected(language) }
                         )
                         Text(
-                            text = language.displayName(stringProvider, packageName),
+                            text = language.displayName(),
                             modifier = Modifier.padding(start = 8.dp),
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -616,11 +518,7 @@ private fun LanguageSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringProvider.getString(
-                    resourceName = "nav_back",
-                    packageName = packageName,
-                    default = "Back"
-                ))
+                Text(stringResource(R.string.nav_back))
             }
         }
     )
@@ -630,20 +528,14 @@ private fun LanguageSelectionDialog(
 private fun CurrencySelectionDialog(
     currentCurrency: String,
     onCurrencySelected: (String) -> Unit,
-    onDismiss: () -> Unit,
-    stringProvider: CachedStringProvider,
-    packageName: String
+    onDismiss: () -> Unit
 ) {
     val currencies = listOf("KZT", "USD", "RUB", "EUR", "GBP")
     
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(stringProvider.getString(
-                resourceName = "settings_select_currency",
-                packageName = packageName,
-                default = "Select Currency"
-            ))
+            Text(stringResource(R.string.settings_select_currency))
         },
         text = {
             Column {
@@ -670,57 +562,27 @@ private fun CurrencySelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringProvider.getString(
-                    resourceName = "nav_back",
-                    packageName = packageName,
-                    default = "Back"
-                ))
+                Text(stringResource(R.string.nav_back))
             }
         }
     )
 }
 
-private fun ThemePreference.displayName(stringProvider: CachedStringProvider, packageName: String): String {
+@Composable
+private fun ThemePreference.displayName(): String {
     return when (this) {
-        ThemePreference.System -> stringProvider.getString(
-            resourceName = "settings_theme_system",
-            packageName = packageName,
-            default = "System"
-        )
-        ThemePreference.Dark -> stringProvider.getString(
-            resourceName = "settings_theme_dark",
-            packageName = packageName,
-            default = "Dark"
-        )
-        ThemePreference.Light -> stringProvider.getString(
-            resourceName = "settings_theme_light",
-            packageName = packageName,
-            default = "Light"
-        )
+        ThemePreference.System -> stringResource(R.string.settings_theme_system)
+        ThemePreference.Dark -> stringResource(R.string.settings_theme_dark)
+        ThemePreference.Light -> stringResource(R.string.settings_theme_light)
     }
 }
 
-private fun LanguagePreference.displayName(stringProvider: CachedStringProvider, packageName: String): String {
+@Composable
+private fun LanguagePreference.displayName(): String {
     return when (this) {
-        LanguagePreference.System -> stringProvider.getString(
-            resourceName = "settings_language_system",
-            packageName = packageName,
-            default = "System"
-        )
-        LanguagePreference.English -> stringProvider.getString(
-            resourceName = "settings_language_english",
-            packageName = packageName,
-            default = "English"
-        )
-        LanguagePreference.Russian -> stringProvider.getString(
-            resourceName = "settings_language_russian",
-            packageName = packageName,
-            default = "Russian"
-        )
-        LanguagePreference.Kazakh -> stringProvider.getString(
-            resourceName = "settings_language_kazakh",
-            packageName = packageName,
-            default = "Kazakh"
-        )
+        LanguagePreference.System -> stringResource(R.string.settings_language_system)
+        LanguagePreference.English -> stringResource(R.string.settings_language_english)
+        LanguagePreference.Russian -> stringResource(R.string.settings_language_russian)
+        LanguagePreference.Kazakh -> stringResource(R.string.settings_language_kazakh)
     }
 }

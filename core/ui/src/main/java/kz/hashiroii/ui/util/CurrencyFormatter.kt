@@ -11,29 +11,33 @@ object CurrencyFormatter {
     }
     
     fun format(amount: BigDecimal, currencyCode: String): String {
-        val locale = getLocaleForCurrency(currencyCode)
-        val currency = try {
-            Currency.getInstance(currencyCode)
-        } catch (e: Exception) {
-            return formatWithSymbol(amount, currencyCode)
-        }
-        
-        val formatter = NumberFormat.getCurrencyInstance(locale)
-        formatter.currency = currency
-        return formatter.format(amount)
+        return formatWithSymbol(amount, currencyCode)
     }
     
-    private fun formatWithSymbol(amount: BigDecimal, currencyCode: String): String {
-        val symbol = when (currencyCode) {
+    fun getCurrencySymbol(currencyCode: String): String {
+        return when (currencyCode) {
             "KZT" -> "₸"
             "USD" -> "$"
             "EUR" -> "€"
             "RUB" -> "₽"
             "GBP" -> "£"
-            else -> currencyCode
+            else -> {
+                try {
+                    Currency.getInstance(currencyCode).symbol
+                } catch (e: Exception) {
+                    currencyCode
+                }
+            }
         }
-        val formattedAmount = String.format("%.2f", amount.toDouble()).trimEnd('0').trimEnd('.')
-        return "$symbol$formattedAmount"
+    }
+    
+    private fun formatWithSymbol(amount: BigDecimal, currencyCode: String): String {
+        val symbol = getCurrencySymbol(currencyCode)
+        val formattedAmount = String.format("%.2f", amount.toDouble())
+            .replace(",", ".")
+            .trimEnd('0')
+            .trimEnd('.')
+        return "$symbol $formattedAmount"
     }
     
     private fun getLocaleForCurrency(currencyCode: String): Locale {

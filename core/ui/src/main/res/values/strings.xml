@@ -1,0 +1,22 @@
+<resources>
+    <string name="subscription_days_left">%1$d days left</string>
+    <string name="subscription_due_today">Due today</string>
+    <string name="subscription_next_payment">Next payment: %1$s</string>
+    
+    <string name="period_monthly">Monthly</string>
+    <string name="period_yearly">Yearly</string>
+    <string name="period_weekly">Weekly</string>
+    <string name="period_daily">Daily</string>
+    <string name="period_quarterly">Quarterly</string>
+    
+    <string name="service_type_streaming">Streaming</string>
+    <string name="service_type_audiobook">Audiobook</string>
+    <string name="service_type_software">Software</string>
+    <string name="service_type_news">News</string>
+    <string name="service_type_fitness">Fitness</string>
+    <string name="service_type_education">Education</string>
+    <string name="service_type_gaming">Gaming</string>
+    <string name="service_type_cloud_storage">Cloud Storage</string>
+    <string name="service_type_productivity">Productivity</string>
+    <string name="service_type_other">Other</string>
+</resources>

@@ -14,8 +14,7 @@ object SubscriptionMapper {
         return Subscription(
             serviceInfo = ServiceInfo(
                 name = entity.serviceName,
-                logoUrls = if (entity.logoUrl != null) listOf(entity.logoUrl) else emptyList(),
-                logoUrl = entity.logoUrl,
+                domain = entity.serviceDomain,
                 logoResId = 0,
                 primaryColor = entity.primaryColor,
                 secondaryColor = entity.secondaryColor,
@@ -32,12 +31,12 @@ object SubscriptionMapper {
     fun toEntity(domain: Subscription): SubscriptionEntity {
         return SubscriptionEntity(
             serviceName = domain.serviceInfo.name,
+            serviceDomain = domain.serviceInfo.domain,
             cost = formatCost(domain.amount, domain.currency),
             period = domain.period.name,
             nextPaymentDate = domain.nextPaymentDate,
             currentPaymentDate = domain.currentPaymentDate,
             serviceType = domain.serviceInfo.serviceType.name,
-            logoUrl = domain.serviceInfo.effectiveLogoUrl,
             primaryColor = domain.serviceInfo.primaryColor,
             secondaryColor = domain.serviceInfo.secondaryColor
         )

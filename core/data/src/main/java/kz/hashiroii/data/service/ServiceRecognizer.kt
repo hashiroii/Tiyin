@@ -9,7 +9,6 @@ import javax.inject.Singleton
 
 @Singleton
 class ServiceRecognizer @Inject constructor(
-    private val logoService: LogoService,
     private val appNameResolver: AppNameResolver
 ) {
 
@@ -75,14 +74,13 @@ class ServiceRecognizer @Inject constructor(
             for ((_, serviceMapping) in serviceMap) {
                 if (combinedText.contains(serviceMapping.name.lowercase())) {
                     return ServiceInfo(
-                    name = serviceMapping.name,
-                    logoUrls = logoService.getLogoUrlsWithFallbacks(serviceMapping.domain),
-                    logoResId = 0,
-                    packageName = null,
-                    primaryColor = serviceMapping.primaryColor,
-                    secondaryColor = serviceMapping.secondaryColor,
-                    serviceType = serviceMapping.serviceType
-                )
+                        name = serviceMapping.name,
+                        domain = serviceMapping.domain,
+                        logoResId = 0,
+                        primaryColor = serviceMapping.primaryColor,
+                        secondaryColor = serviceMapping.secondaryColor,
+                        serviceType = serviceMapping.serviceType
+                    )
                 }
             }
         }
@@ -91,9 +89,8 @@ class ServiceRecognizer @Inject constructor(
         if (mapping != null) {
             return ServiceInfo(
                 name = mapping.name,
-                logoUrls = logoService.getLogoUrlsWithFallbacks(mapping.domain),
+                domain = mapping.domain,
                 logoResId = 0,
-                packageName = packageName,
                 primaryColor = mapping.primaryColor,
                 secondaryColor = mapping.secondaryColor,
                 serviceType = mapping.serviceType
@@ -101,12 +98,11 @@ class ServiceRecognizer @Inject constructor(
         }
 
         val appName = appNameResolver.getAppName(packageName)
-        val fallbackDomain = packageName.substringAfterLast(".").replace("_", "")
+        val fallbackDomain = packageName.substringAfterLast(".").replace("_", "") + ".com"
         return ServiceInfo(
             name = appName,
-            logoUrls = logoService.getLogoUrlsWithFallbacks(fallbackDomain),
+            domain = fallbackDomain,
             logoResId = 0,
-            packageName = packageName,
             primaryColor = 0xFF6200EE,
             secondaryColor = 0xFF000000,
             serviceType = ServiceType.OTHER
