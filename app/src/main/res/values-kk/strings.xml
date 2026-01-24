@@ -1,0 +1,77 @@
+<resources>
+    <string name="app_name">Тиын</string>
+    
+    <string name="stat_active">Белсенді</string>
+    <string name="stat_spending">Шығындар</string>
+    <string name="stat_subscription">жазылым</string>
+    <string name="stat_subscriptions">жазылымдар</string>
+    <string name="active_subscriptions">Белсенді жазылымдар</string>
+    <string name="total_spending">Жалпы шығындар</string>
+    
+    <string name="nav_home">Басты</string>
+    <string name="nav_analytics">Аналитика</string>
+    <string name="nav_groups">Топтар</string>
+    <string name="nav_profile">Профиль</string>
+    <string name="nav_settings">Баптаулар</string>
+    <string name="nav_back">Артқа</string>
+    
+    <string name="error_loading_subscriptions">Жазылымдарды жүктеу сәтсіз аяқталды</string>
+    <string name="error_unknown">Белгісіз қате орын алды</string>
+    
+    <string name="settings_general_preferences">Жалпы баптаулар</string>
+    <string name="settings_theme">Тақырып</string>
+    <string name="settings_language">Тіл</string>
+    <string name="settings_currency">Валюта</string>
+    <string name="settings_card_view">Карта көрінісі</string>
+    <string name="settings_show_spending_card">Шығындар картасын көрсету</string>
+    <string name="settings_system">Жүйе</string>
+    <string name="settings_notifications">Хабарландырулар</string>
+    <string name="settings_about">Қолданба туралы</string>
+    <string name="settings_open_source_feedback">Ашық код / Кері байланыс</string>
+    <string name="settings_about_tiyin">Тиын туралы</string>
+    <string name="settings_open_source_licenses">Ашық код лицензиялары</string>
+    <string name="settings_delete_account">Есепті жою</string>
+    <string name="settings_delete">Жою</string>
+    
+    <string name="settings_theme_dark">Қараңғы</string>
+    <string name="settings_theme_light">Жарық</string>
+    <string name="settings_theme_system">Жүйе</string>
+    
+    <string name="settings_language_system">Жүйе</string>
+    <string name="settings_language_english">Ағылшын</string>
+    <string name="settings_language_russian">Орыс</string>
+    <string name="settings_language_kazakh">Қазақ</string>
+    
+    <string name="settings_currency_kzt">KZT</string>
+    <string name="settings_currency_usd">USD</string>
+    <string name="settings_currency_rub">RUB</string>
+    <string name="settings_currency_eur">EUR</string>
+    <string name="settings_currency_gbp">GBP</string>
+    
+    <string name="settings_card_view_default">Әдепкі</string>
+    
+    <string name="settings_select_theme">Тақырыпты таңдаңыз</string>
+    <string name="settings_select_language">Тілді таңдаңыз</string>
+    <string name="settings_select_currency">Валютаны таңдаңыз</string>
+    
+    <string name="subscription_days_left">%1$d күн қалды</string>
+    <string name="subscription_due_today">Бүгін</string>
+    <string name="subscription_next_payment">Келесі төлем: %1$s</string>
+    
+    <string name="period_monthly">Ай сайын</string>
+    <string name="period_yearly">Жыл сайын</string>
+    <string name="period_weekly">Апта сайын</string>
+    <string name="period_daily">Күн сайын</string>
+    <string name="period_quarterly">Тоқсан сайын</string>
+    
+    <string name="service_type_streaming">Стриминг</string>
+    <string name="service_type_audiobook">Аудиокітап</string>
+    <string name="service_type_software">Бағдарламалық жасақтама</string>
+    <string name="service_type_news">Жаңалықтар</string>
+    <string name="service_type_fitness">Фитнес</string>
+    <string name="service_type_education">Білім беру</string>
+    <string name="service_type_gaming">Ойындар</string>
+    <string name="service_type_cloud_storage">Бұлттық сақтау</string>
+    <string name="service_type_productivity">Өнімділік</string>
+    <string name="service_type_other">Басқа</string>
+</resources>

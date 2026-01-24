@@ -8,6 +8,70 @@
     <string name="active_subscriptions">Активные подписки</string>
     <string name="total_spending">Общие расходы</string>
     
+    <string name="nav_home">Главная</string>
+    <string name="nav_analytics">Аналитика</string>
+    <string name="nav_groups">Группы</string>
+    <string name="nav_profile">Профиль</string>
+    <string name="nav_settings">Настройки</string>
+    <string name="nav_back">Назад</string>
+    
     <string name="error_loading_subscriptions">Не удалось загрузить подписки</string>
     <string name="error_unknown">Произошла неизвестная ошибка</string>
+    
+    <string name="settings_general_preferences">Общие настройки</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_currency">Валюта</string>
+    <string name="settings_card_view">Вид карточки</string>
+    <string name="settings_show_spending_card">Показывать карточку расходов</string>
+    <string name="settings_system">Система</string>
+    <string name="settings_notifications">Уведомления</string>
+    <string name="settings_about">О приложении</string>
+    <string name="settings_open_source_feedback">Открыть исходный код / Отзыв</string>
+    <string name="settings_about_tiyin">О Тиын</string>
+    <string name="settings_open_source_licenses">Лицензии открытого исходного кода</string>
+    <string name="settings_delete_account">Удалить аккаунт</string>
+    <string name="settings_delete">Удалить</string>
+    
+    <string name="settings_theme_dark">Темная</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_system">Системная</string>
+    
+    <string name="settings_language_system">Система</string>
+    <string name="settings_language_english">Английский</string>
+    <string name="settings_language_russian">Русский</string>
+    <string name="settings_language_kazakh">Казахский</string>
+    
+    <string name="settings_currency_kzt">KZT</string>
+    <string name="settings_currency_usd">USD</string>
+    <string name="settings_currency_rub">RUB</string>
+    <string name="settings_currency_eur">EUR</string>
+    <string name="settings_currency_gbp">GBP</string>
+    
+    <string name="settings_card_view_default">По умолчанию</string>
+    
+    <string name="settings_select_theme">Выберите тему</string>
+    <string name="settings_select_language">Выберите язык</string>
+    <string name="settings_select_currency">Выберите валюту</string>
+    
+    <string name="subscription_days_left">Осталось %1$d дней</string>
+    <string name="subscription_due_today">Сегодня</string>
+    <string name="subscription_next_payment">Следующий платеж: %1$s</string>
+    
+    <string name="period_monthly">Ежемесячно</string>
+    <string name="period_yearly">Ежегодно</string>
+    <string name="period_weekly">Еженедельно</string>
+    <string name="period_daily">Ежедневно</string>
+    <string name="period_quarterly">Ежеквартально</string>
+    
+    <string name="service_type_streaming">Стриминг</string>
+    <string name="service_type_audiobook">Аудиокниги</string>
+    <string name="service_type_software">Программное обеспечение</string>
+    <string name="service_type_news">Новости</string>
+    <string name="service_type_fitness">Фитнес</string>
+    <string name="service_type_education">Образование</string>
+    <string name="service_type_gaming">Игры</string>
+    <string name="service_type_cloud_storage">Облачное хранилище</string>
+    <string name="service_type_productivity">Продуктивность</string>
+    <string name="service_type_other">Другое</string>
 </resources>
