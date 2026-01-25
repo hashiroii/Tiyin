@@ -14,27 +14,38 @@ class LogoRepositoryImpl @Inject constructor(
     
     private val logoCache = mutableMapOf<String, String>()
     
+    private fun cleanDomain(domain: String): String {
+        return domain.trim()
+            .removePrefix("http://")
+            .removePrefix("https://")
+            .removePrefix("www.")
+            .lowercase()
+    }
+    
     override fun getLogoUrl(domain: String): Flow<String?> = flow {
-        logoCache[domain]?.let { cachedUrl ->
+        val cleanDomain = cleanDomain(domain)
+        
+        logoCache[cleanDomain]?.let { cachedUrl ->
             emit(cachedUrl)
             return@flow
         }
         
-        val logoUrl = if (apiKey.isNotEmpty()) {
-            "https://img.logo.dev/$domain?token=$apiKey&size=256&format=png"
+        val logoUrl = if (apiKey.isNotEmpty() && cleanDomain.isNotEmpty()) {
+            "https://img.logo.dev/$cleanDomain?token=$apiKey&size=256&format=png"
         } else {
             null
         }
         
-        logoUrl?.let { logoCache[domain] = it }
+        logoUrl?.let { logoCache[cleanDomain] = it }
         emit(logoUrl)
     }
     
     override suspend fun prefetchLogos(domains: List<String>) {
         domains.forEach { domain ->
-            if (!logoCache.containsKey(domain) && apiKey.isNotEmpty()) {
-                val logoUrl = "https://img.logo.dev/$domain?token=$apiKey&size=256&format=png"
-                logoCache[domain] = logoUrl
+            val cleanDomain = cleanDomain(domain)
+            if (!logoCache.containsKey(cleanDomain) && apiKey.isNotEmpty() && cleanDomain.isNotEmpty()) {
+                val logoUrl = "https://img.logo.dev/$cleanDomain?token=$apiKey&size=256&format=png"
+                logoCache[cleanDomain] = logoUrl
             }
         }
     }

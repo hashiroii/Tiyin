@@ -1,19 +1,17 @@
 package kz.hashiroii.tiyin
 
-import android.content.Context
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,14 +30,14 @@ import kz.hashiroii.tiyin.ui.rememberTiyinAppState
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
-    
+class MainActivity : AppCompatActivity() {
+
     @Inject
     lateinit var networkMonitor: NetworkMonitor
-    
+
     @Inject
     lateinit var getPreferencesUseCase: GetPreferencesUseCase
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -53,10 +51,10 @@ class MainActivity : ComponentActivity() {
 private fun TiyinAppWithTheme(
     getPreferencesUseCase: GetPreferencesUseCase
 ) {
-    val preferencesState by getPreferencesUseCase().collectAsState(
-        initial = null
+    val preferencesState by getPreferencesUseCase().collectAsStateWithLifecycle(
+        initialValue = null
     )
-    
+
     preferencesState?.let { prefs ->
         TiyinTheme(themePreference = prefs.theme) {
             TiyinApp()
@@ -69,25 +67,25 @@ fun TiyinApp() {
     val navController = rememberNavController()
     val appState = rememberTiyinAppState(navController)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    
+
     val currentDestination = navBackStackEntry?.destination
     val currentTopLevelDestination = appState.currentTopLevelDestination
     val shouldShowBottomBar = appState.shouldShowBottomBar
     val shouldShowBackButton = appState.shouldShowBackButton
-    
+
     val topBarTitle = when (currentTopLevelDestination) {
         is Home -> stringResource(id = R.string.nav_home)
         is Analytics -> stringResource(id = R.string.nav_analytics)
         is Groups -> stringResource(id = R.string.nav_groups)
         else -> when {
-            currentDestination?.route?.contains("Profile") == true -> 
+            currentDestination?.route?.contains("Profile") == true ->
                 stringResource(id = R.string.nav_profile)
-            currentDestination?.route?.contains("Settings") == true -> 
+            currentDestination?.route?.contains("Settings") == true ->
                 stringResource(id = R.string.nav_settings)
             else -> stringResource(id = R.string.app_name)
         }
     }
-    
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {

@@ -1,9 +1,14 @@
 package kz.hashiroii.settings
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -27,6 +32,9 @@ class SettingsViewModel @Inject constructor(
     private val setShowSpendingCardUseCase: SetShowSpendingCardUseCase,
     private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase
 ) : ViewModel() {
+
+    private val _recreateActivity = MutableSharedFlow<Unit>()
+    val recreateActivity: SharedFlow<Unit> = _recreateActivity.asSharedFlow()
 
     val uiState: StateFlow<SettingsUiState> = getPreferencesUseCase()
         .map { preferences ->
@@ -62,6 +70,13 @@ class SettingsViewModel @Inject constructor(
             is SettingsIntent.UpdateLanguage -> {
                 viewModelScope.launch {
                     setLanguageUseCase(intent.language.code)
+                    val localeList = if (intent.language.code.isEmpty() || intent.language.code == "System") {
+                        LocaleListCompat.getEmptyLocaleList()
+                    } else {
+                        LocaleListCompat.forLanguageTags(intent.language.code)
+                    }
+                    AppCompatDelegate.setApplicationLocales(localeList)
+                    _recreateActivity.emit(Unit)
                 }
             }
             is SettingsIntent.UpdateCurrency -> {
@@ -85,12 +100,16 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             is SettingsIntent.OpenFeedback -> {
+                // Handle feedback
             }
             is SettingsIntent.OpenAbout -> {
+                // Handle about
             }
             is SettingsIntent.OpenLicenses -> {
+                // Handle licenses
             }
             is SettingsIntent.DeleteAccount -> {
+                // Handle account deletion
             }
         }
     }

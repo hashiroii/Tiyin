@@ -43,30 +43,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.collectAsState
-import kotlinx.coroutines.delay
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kz.hashiroii.settings.R
 
 @Composable
 fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    
-    val currentLanguage = (uiState as? SettingsUiState.Success)?.language
-    val previousLanguage = remember { mutableStateOf<LanguagePreference?>(null) }
-    
-    LaunchedEffect(currentLanguage) {
-        if (previousLanguage.value != null && 
-            currentLanguage != null && 
-            previousLanguage.value != currentLanguage) {
-            delay(100)
-            (context as? androidx.activity.ComponentActivity)?.recreate()
+
+    // Listen for activity recreation signal
+    LaunchedEffect(Unit) {
+        viewModel.recreateActivity.collect {
+            (context as? androidx.appcompat.app.AppCompatActivity)?.recreate()
         }
-        previousLanguage.value = currentLanguage
     }
-    
+
     SettingsScreen(
         uiState = uiState,
         onIntent = viewModel::onIntent
@@ -114,11 +107,11 @@ private fun SettingsContent(
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-    
+
     var showThemeDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
-    
+
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(16.dp),
@@ -133,7 +126,7 @@ private fun SettingsContent(
                 onCurrencyClick = { showCurrencyDialog = true }
             )
         }
-        
+
         item {
             SystemCard(
                 uiState = uiState,
@@ -145,21 +138,21 @@ private fun SettingsContent(
                 }
             )
         }
-        
+
         item {
             AboutCard(
                 onIntent = onIntent,
                 uriHandler = uriHandler
             )
         }
-        
+
         item {
             AccountCard(
                 onIntent = onIntent
             )
         }
     }
-    
+
     if (showThemeDialog) {
         ThemeSelectionDialog(
             currentTheme = uiState.theme,
@@ -170,7 +163,7 @@ private fun SettingsContent(
             onDismiss = { showThemeDialog = false }
         )
     }
-    
+
     if (showLanguageDialog) {
         LanguageSelectionDialog(
             currentLanguage = uiState.language,
@@ -181,7 +174,7 @@ private fun SettingsContent(
             onDismiss = { showLanguageDialog = false }
         )
     }
-    
+
     if (showCurrencyDialog) {
         CurrencySelectionDialog(
             currentCurrency = uiState.currency,
@@ -257,9 +250,9 @@ private fun GeneralPreferencesCard(
                 value = uiState.currency,
                 onClick = onCurrencyClick
             )
-            
+
             Divider(modifier = Modifier.padding(horizontal = 16.dp))
-            
+
             SettingsRow(
                 label = stringResource(R.string.settings_card_view),
                 value = uiState.cardView,
@@ -311,7 +304,7 @@ private fun SystemCard(
             )
 
             HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-            
+
             SettingsRow(
                 label = stringResource(R.string.settings_notifications),
                 value = "",
@@ -531,7 +524,7 @@ private fun CurrencySelectionDialog(
     onDismiss: () -> Unit
 ) {
     val currencies = listOf("KZT", "USD", "RUB", "EUR", "GBP")
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {

@@ -60,7 +60,9 @@ class HomeViewModel @Inject constructor(
                     )
                 } else {
                     val logoUrlFlows = domains.map { domain ->
-                        getLogoUrlUseCase(domain).map { domain to it }
+                        getLogoUrlUseCase(domain).map { logoUrl ->
+                            domain to logoUrl
+                        }
                     }
                     
                     combine(logoUrlFlows) { logoUrlPairs ->

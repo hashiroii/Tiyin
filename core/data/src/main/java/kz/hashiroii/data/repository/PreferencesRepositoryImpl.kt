@@ -46,13 +46,9 @@ class PreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setLanguage(language: String) {
-        dataStore.edit { 
+        dataStore.edit {
             it[LANGUAGE_KEY] = language
         }
-        context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-            .edit()
-            .putString("language", language)
-            .apply()
     }
 
     override suspend fun setCurrency(currency: String) {
