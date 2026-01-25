@@ -4,14 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kz.hashiroii.domain.usecase.logo.GetLogoUrlUseCase
 import kz.hashiroii.domain.usecase.logo.PrefetchLogosUseCase
@@ -32,13 +35,18 @@ class HomeViewModel @Inject constructor(
     private val prefetchLogosUseCase: PrefetchLogosUseCase
 ) : ViewModel() {
 
-    val uiState: StateFlow<HomeUiState> = getCurrencyUseCase()
-        .flatMapLatest { currency ->
-            combine(
-                getSubscriptionsUseCase(),
-                calculateTotalCostUseCase(currency)
-            ) { subscriptions, totalCostResult ->
-                subscriptions to totalCostResult
+    private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    init {
+        getCurrencyUseCase()
+            .flatMapLatest { currency ->
+                combine(
+                    getSubscriptionsUseCase(),
+                    calculateTotalCostUseCase(currency)
+                ) { subscriptions, totalCostResult ->
+                    subscriptions to totalCostResult
+                }
             }
             .flatMapLatest { (subscriptions, totalCostResult) ->
                 val activeCount = subscriptions.size
@@ -59,16 +67,14 @@ class HomeViewModel @Inject constructor(
                         ) as HomeUiState
                     )
                 } else {
-                    val logoUrlFlows = domains.map { domain ->
-                        getLogoUrlUseCase(domain).map { logoUrl ->
+                    val logoUrlFlows: List<Flow<Pair<String, String?>>> = domains.map { domain: String ->
+                        getLogoUrlUseCase(domain).map { logoUrl: String? ->
                             domain to logoUrl
                         }
                     }
                     
-                    combine(logoUrlFlows) { logoUrlPairs ->
-                        val logoUrlsMap = logoUrlPairs.mapNotNull { 
-                            it as? Pair<String, String?>
-                        }.toMap()
+                    combine(logoUrlFlows) { logoUrlPairs: Array<Pair<String, String?>> ->
+                        val logoUrlsMap = logoUrlPairs.toMap()
                         
                         HomeUiState.Success(
                             subscriptions = subscriptions,
@@ -90,16 +96,16 @@ class HomeViewModel @Inject constructor(
                 )
             }
             .flowOn(Dispatchers.Default)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = HomeUiState.Loading
-        )
+            .onEach { state ->
+                _uiState.value = state
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun onIntent(intent: HomeIntent) {
         when (intent) {
             is HomeIntent.LoadSubscriptions -> {
+                // Already handled by the flow in init
             }
             is HomeIntent.RefreshSubscriptions -> refreshSubscriptions()
         }
@@ -110,6 +116,11 @@ class HomeViewModel @Inject constructor(
             try {
                 refreshSubscriptionsUseCase()
             } catch (e: Exception) {
+                _uiState.value = HomeUiState.Error(
+                    message = UiText.DynamicString(
+                        e.message ?: "Failed to refresh subscriptions"
+                    )
+                )
             }
         }
     }

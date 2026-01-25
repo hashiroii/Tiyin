@@ -3,12 +3,16 @@ package kz.hashiroii.profile.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import kz.hashiroii.navigation.Profile
-import kz.hashiroii.profile.ProfileScreen
+import kz.hashiroii.profile.ProfileScreenRoute
 
 fun NavGraphBuilder.profileScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSignInClick: () -> Unit
 ) {
     composable<Profile> {
-        ProfileScreen(onBackClick = onBackClick)
+        ProfileScreenRoute(
+            onBackClick = onBackClick,
+            onSignInClick = onSignInClick
+        )
     }
 }

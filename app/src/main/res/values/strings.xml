@@ -74,4 +74,11 @@
     <string name="service_type_cloud_storage">Cloud Storage</string>
     <string name="service_type_productivity">Productivity</string>
     <string name="service_type_other">Other</string>
+    
+    <string name="auth_title">Sync Your Subscriptions</string>
+    <string name="auth_description">Sign in with Google to store your subscriptions in your account instead of on this device. Your data will be synced across all your devices.</string>
+    <string name="auth_sign_in_with_google">Sign in with Google</string>
+    <string name="auth_skip">Skip for now</string>
+    
+    <string name="default_web_client_id">742082703101-tg4bd8222o0mtrvlttko7k5f8qtopci9.apps.googleusercontent.com</string>
 </resources>

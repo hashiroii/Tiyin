@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "742082703101",
+    "project_id": "tiyin-b7c62",
+    "storage_bucket": "tiyin-b7c62.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742082703101:android:df6ce0b295e93000031894",
+        "android_client_info": {
+          "package_name": "kz.hashiroii.tiyin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "742082703101-av1de6pa9t5lf1qf8jopiv7t6biphosn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "kz.hashiroii.tiyin",
+            "certificate_hash": "5447a675a7cf314ae6543a26b1c542a8e50f9b0c"
+          }
+        },
+        {
+          "client_id": "742082703101-tg4bd8222o0mtrvlttko7k5f8qtopci9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmgKW-h0grya9xPl80odwyY7PgWTlGPsE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "742082703101-tg4bd8222o0mtrvlttko7k5f8qtopci9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

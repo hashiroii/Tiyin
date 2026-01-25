@@ -16,7 +16,8 @@ import kz.hashiroii.settings.navigation.settingsScreen
 @Composable
 fun TiyinNavHost(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSignInClick: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -26,7 +27,10 @@ fun TiyinNavHost(
         homeScreen()
         analyticsScreen()
         groupsScreen()
-        profileScreen(onBackClick = { navController.navigateUp() })
+        profileScreen(
+            onBackClick = { navController.navigateUp() },
+            onSignInClick = onSignInClick
+        )
         settingsScreen()
     }
 }

@@ -39,8 +39,8 @@ kapt {
 }
 
 dependencies {
-
     implementation(project(":core:domain"))
+    
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -49,6 +49,11 @@ dependencies {
     kapt(libs.hilt.compiler)
     
     implementation(libs.androidx.datastore.preferences)
+
+    implementation(platform(libs.firebase.bom))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.kotlinx.coroutines.play.services)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

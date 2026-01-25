@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.services)
     kotlin("kapt")
 }
 
@@ -62,7 +63,6 @@ kapt {
 }
 
 dependencies {
-
     implementation(project(":feature:home"))
     implementation(project(":feature:analytics"))
     implementation(project(":feature:groups"))
@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
+    
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -91,6 +92,12 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
+
+    implementation(platform(libs.firebase.bom))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.play.services.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
