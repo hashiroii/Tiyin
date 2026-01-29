@@ -10,7 +10,7 @@ import javax.inject.Singleton
 @Singleton
 class CurrencyRepositoryImpl @Inject constructor() : CurrencyRepository {
 
-    private val exchangeRates = mapOf(
+    private val exchangeRates = mapOf(  
         "USD" to 480.0,
         "KZT" to 1.0,
         "EUR" to 510.0,

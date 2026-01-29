@@ -2,9 +2,11 @@ package kz.hashiroii.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kz.hashiroii.data.mapper.SubscriptionMapper
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.repository.FirestoreSubscriptionRepository
@@ -21,63 +23,92 @@ class FirestoreSubscriptionRepositoryImpl @Inject constructor(
 ) : FirestoreSubscriptionRepository {
     
     override fun getUserSubscriptions(userId: String): Flow<List<Subscription>> = flow {
-        val snapshot = firestore
-            .collection("users")
-            .document(userId)
-            .collection("subscriptions")
-            .get()
-            .await()
-        
-        val subscriptions = snapshot.documents.mapNotNull { doc ->
-            try {
-                val entity = doc.toObject(SubscriptionFirestoreEntity::class.java)
-                entity?.let { SubscriptionMapper.toDomain(it.toEntity(doc.id)) }
-            } catch (e: Exception) {
-                null
+        val subscriptions = withContext(Dispatchers.IO) {
+            val snapshot = firestore
+                .collection("users")
+                .document(userId)
+                .collection("subscriptions")
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                try {
+                    val entity = doc.toObject(SubscriptionFirestoreEntity::class.java)
+                    entity?.let { SubscriptionMapper.toDomain(it.toEntity(doc.id)) }
+                } catch (e: Exception) {
+                    null
+                }
             }
         }
-        
         emit(subscriptions)
     }
     
-    override suspend fun saveSubscription(userId: String, subscription: Subscription): Result<Unit> {
-        return try {
+    override suspend fun saveSubscription(userId: String, subscription: Subscription, subscriptionId: String?): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
             val entity = SubscriptionMapper.toEntity(subscription)
             val firestoreEntity = SubscriptionFirestoreEntity.fromEntity(entity)
-            val subscriptionId = UUID.randomUUID().toString()
-            
+            val docId = subscriptionId ?: UUID.nameUUIDFromBytes(
+                "${subscription.serviceInfo.domain}-${subscription.serviceInfo.name}".toByteArray()
+            ).toString()
+
+            firestore
+                .collection("users")
+                .document(userId)
+                .collection("subscriptions")
+                .document(docId)
+                .set(firestoreEntity)
+                .await()
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun updateSubscription(userId: String, subscriptionId: String, subscription: Subscription): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+            val entity = SubscriptionMapper.toEntity(subscription)
+            val firestoreEntity = SubscriptionFirestoreEntity.fromEntity(entity)
+
             firestore
                 .collection("users")
                 .document(userId)
                 .collection("subscriptions")
                 .document(subscriptionId)
-                .set(firestoreEntity)
+                .set(firestoreEntity, SetOptions.merge())
                 .await()
-            
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
-    
+
     override suspend fun deleteSubscription(userId: String, subscriptionId: String): Result<Unit> {
-        return try {
-            firestore
+        return withContext(Dispatchers.IO) {
+            try {
+                firestore
                 .collection("users")
                 .document(userId)
                 .collection("subscriptions")
                 .document(subscriptionId)
                 .delete()
                 .await()
-            
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
-    
+
     override suspend fun syncSubscriptions(userId: String, subscriptions: List<Subscription>): Result<Unit> {
-        return try {
+        return withContext(Dispatchers.IO) {
+            try {
             val batch = firestore.batch()
             val subscriptionsRef = firestore
                 .collection("users")
@@ -98,10 +129,11 @@ class FirestoreSubscriptionRepositoryImpl @Inject constructor(
                 )
             }
             
-            batch.commit().await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+                batch.commit().await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
 }
@@ -121,6 +153,7 @@ data class SubscriptionFirestoreEntity(
 ) {
     fun toEntity(id: String): kz.hashiroii.data.model.SubscriptionEntity {
         return kz.hashiroii.data.model.SubscriptionEntity(
+            id = id,
             serviceName = serviceName,
             serviceDomain = serviceDomain,
             cost = cost,

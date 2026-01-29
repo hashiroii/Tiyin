@@ -1,12 +1,16 @@
 package kz.hashiroii.data.di
 
+import android.content.Context
+import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kz.hashiroii.data.datasource.MockSubscriptionDataSource
+import kz.hashiroii.data.local.SubscriptionDao
+import kz.hashiroii.data.local.TiyinDatabase
 import kz.hashiroii.data.network.NetworkMonitor
 import kz.hashiroii.data.repository.CurrencyRepositoryImpl
 import kz.hashiroii.data.repository.NotificationRepositoryImpl
@@ -35,15 +39,31 @@ object DataModule {
 
     @Provides
     @Singleton
+    fun provideTiyinDatabase(
+        @ApplicationContext context: Context
+    ): TiyinDatabase {
+        return Room.databaseBuilder(
+            context,
+            TiyinDatabase::class.java,
+            "tiyin_db"
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSubscriptionDao(db: TiyinDatabase): SubscriptionDao = db.subscriptionDao()
+
+    @Provides
+    @Singleton
     fun provideNotificationRepository(
+        subscriptionDao: SubscriptionDao,
         subscriptionDetectionService: SubscriptionDetectionService,
-        mockDataSource: MockSubscriptionDataSource,
         authRepository: AuthRepository,
         firestoreSubscriptionRepository: FirestoreSubscriptionRepository
     ): NotificationRepository {
         return NotificationRepositoryImpl(
+            subscriptionDao,
             subscriptionDetectionService,
-            mockDataSource,
             authRepository,
             firestoreSubscriptionRepository
         )

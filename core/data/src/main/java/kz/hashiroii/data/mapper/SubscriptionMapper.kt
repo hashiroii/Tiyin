@@ -12,6 +12,7 @@ object SubscriptionMapper {
         val (amount, currency) = parseCost(entity.cost)
         
         return Subscription(
+            id = entity.id,
             serviceInfo = ServiceInfo(
                 name = entity.serviceName,
                 domain = entity.serviceDomain,
@@ -30,6 +31,7 @@ object SubscriptionMapper {
     
     fun toEntity(domain: Subscription): SubscriptionEntity {
         return SubscriptionEntity(
+            id = domain.id,
             serviceName = domain.serviceInfo.name,
             serviceDomain = domain.serviceInfo.domain,
             cost = formatCost(domain.amount, domain.currency),

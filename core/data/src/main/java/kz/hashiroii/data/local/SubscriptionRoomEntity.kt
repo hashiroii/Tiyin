@@ -1,9 +1,13 @@
-package kz.hashiroii.data.model
+package kz.hashiroii.data.local
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.time.LocalDate
 
-data class SubscriptionEntity(
-    val id: String? = null,
+@Entity(tableName = "subscriptions")
+data class SubscriptionRoomEntity(
+    @PrimaryKey
+    val id: String,
     val serviceName: String,
     val serviceDomain: String,
     val cost: String,
