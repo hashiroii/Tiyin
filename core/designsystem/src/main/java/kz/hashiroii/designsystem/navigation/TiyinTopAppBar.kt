@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,12 +31,15 @@ fun TiyinTopAppBar(
     showBackButton: Boolean = false,
     showProfileButton: Boolean = false,
     showSettingsButton: Boolean = false,
+    showDeleteButton: Boolean = false,
     backContentDescription: String = "Back",
     profileContentDescription: String = "Profile",
     settingsContentDescription: String = "Settings",
+    deleteContentDescription: String = "Delete",
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
     userPhotoUrl: String? = null
 ) {
     TopAppBar(
@@ -59,6 +63,15 @@ fun TiyinTopAppBar(
             }
         },
         actions = {
+            if (showDeleteButton) {
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = deleteContentDescription,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
             if (showProfileButton) {
                 IconButton(onClick = onProfileClick) {
                     if (userPhotoUrl != null) {
