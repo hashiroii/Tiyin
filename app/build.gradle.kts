@@ -68,6 +68,7 @@ dependencies {
     implementation(project(":feature:groups"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:subscription-manager"))
     implementation(project(":core:navigation"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:ui"))
