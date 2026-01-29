@@ -46,6 +46,9 @@ class TiyinAppState(
     val shouldShowBackButton: Boolean
         get() {
             val route = currentDestination?.route ?: return false
-            return route.contains("Profile") || route.contains("Settings")
+            return route.contains("Profile") || 
+                   route.contains("Settings") ||
+                   route.contains("AddSubscription") ||
+                   route.contains("EditSubscription")
         }
 }

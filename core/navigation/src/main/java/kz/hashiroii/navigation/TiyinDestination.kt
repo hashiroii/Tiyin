@@ -17,4 +17,15 @@ object Profile : TiyinDestination
 @Serializable
 object Settings : TiyinDestination
 
+@Serializable
+data class AddSubscription(
+    val subscriptionId: String? = null
+) : TiyinDestination
+
+@Serializable
+data class EditSubscription(
+    val serviceName: String,
+    val serviceDomain: String
+) : TiyinDestination
+
 interface TiyinDestination

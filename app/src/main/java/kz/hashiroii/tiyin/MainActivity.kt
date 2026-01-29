@@ -42,6 +42,9 @@ import kz.hashiroii.tiyin.auth.AuthViewModel
 import kz.hashiroii.tiyin.auth.GoogleSignInHelper
 import kz.hashiroii.tiyin.navigation.TiyinNavHost
 import kz.hashiroii.tiyin.ui.rememberTiyinAppState
+import kz.hashiroii.subscriptionmanager.SubscriptionManagerIntent
+import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -164,6 +167,12 @@ fun TiyinApp(
     val shouldShowBottomBar = appState.shouldShowBottomBar
     val shouldShowBackButton = appState.shouldShowBackButton
 
+    val isEditSubscriptionRoute = remember(currentDestination?.route) {
+        currentDestination?.route?.contains("EditSubscription") == true
+    }
+    
+    var deleteSubscriptionCallback: (() -> Unit)? by remember { mutableStateOf(null) }
+    
     val topBarTitle = when (currentTopLevelDestination) {
         is Home -> stringResource(id = R.string.nav_home)
         is Analytics -> stringResource(id = R.string.nav_analytics)
@@ -173,6 +182,10 @@ fun TiyinApp(
                 stringResource(id = R.string.nav_profile)
             currentDestination?.route?.contains("Settings") == true ->
                 stringResource(id = R.string.nav_settings)
+            currentDestination?.route?.contains("AddSubscription") == true ->
+                "Add Subscription"
+            currentDestination?.route?.contains("EditSubscription") == true ->
+                "Edit Subscription"
             else -> stringResource(id = R.string.app_name)
         }
     }
@@ -205,12 +218,17 @@ fun TiyinApp(
                 showBackButton = shouldShowBackButton,
                 showProfileButton = appState.shouldShowSettingsIcons && !shouldShowBackButton,
                 showSettingsButton = appState.shouldShowSettingsIcons && !shouldShowBackButton,
+                showDeleteButton = isEditSubscriptionRoute,
                 backContentDescription = stringResource(id = R.string.nav_back),
                 profileContentDescription = stringResource(id = R.string.nav_profile),
                 settingsContentDescription = stringResource(id = R.string.nav_settings),
+                deleteContentDescription = "Delete Subscription",
                 onBackClick = { navController.navigateUp() },
                 onProfileClick = { navController.navigate(Profile) },
                 onSettingsClick = { navController.navigate(Settings) },
+                onDeleteClick = {
+                    deleteSubscriptionCallback?.invoke()
+                },
                 userPhotoUrl = currentUser?.photoUrl
             )
         },
@@ -234,7 +252,8 @@ fun TiyinApp(
         TiyinNavHost(
             navController = navController,
             modifier = Modifier.padding(innerPadding),
-            onSignInClick = onSignInClick
+            onSignInClick = onSignInClick,
+            onDeleteSubscriptionReady = { callback -> deleteSubscriptionCallback = callback }
         )
     }
 }
