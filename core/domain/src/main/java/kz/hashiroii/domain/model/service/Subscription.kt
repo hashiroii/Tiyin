@@ -22,21 +22,32 @@ data class Subscription(
     val currentPaymentDate: LocalDate
 ) {
     fun daysUntilNextPayment(today: LocalDate = LocalDate.now()): Int {
-        return if (nextPaymentDate.isAfter(today) || nextPaymentDate.isEqual(today)) {
+        return if (nextPaymentDate.isAfter(today)) {
             ChronoUnit.DAYS.between(today, nextPaymentDate).toInt()
         } else {
             0
         }
     }
 
+    /**
+     * If the current period has expired ([today] >= [nextPaymentDate]), returns a copy with
+     * start/end rolled to the next period. Otherwise returns this subscription unchanged.
+     */
+    fun rolledIfExpired(today: LocalDate = LocalDate.now()): Subscription {
+        if (today.isBefore(nextPaymentDate)) return this
+        val periodLengthDays = ChronoUnit.DAYS.between(currentPaymentDate, nextPaymentDate).toInt()
+        if (periodLengthDays <= 0) return this
+        val newStart = nextPaymentDate
+        val newEnd = newStart.plusDays(periodLengthDays.toLong())
+        return copy(currentPaymentDate = newStart, nextPaymentDate = newEnd)
+    }
+
+    /** Progress from start to end date only; 0 if before start, 1 if at or after end. */
     fun progressPercentage(today: LocalDate = LocalDate.now()): Float {
-        val totalDays = when (period) {
-            SubscriptionPeriod.MONTHLY -> 30
-            SubscriptionPeriod.YEARLY -> 365
-            SubscriptionPeriod.WEEKLY -> 7
-            SubscriptionPeriod.DAILY -> 1
-            SubscriptionPeriod.QUARTERLY -> 90
-        }
+        val totalDays = ChronoUnit.DAYS.between(currentPaymentDate, nextPaymentDate).toInt()
+        if (totalDays <= 0) return 0f
+        if (today.isBefore(currentPaymentDate)) return 0f
+        if (!today.isBefore(nextPaymentDate)) return 1f
         val daysPassed = ChronoUnit.DAYS.between(currentPaymentDate, today).toInt()
         return (daysPassed.toFloat() / totalDays).coerceIn(0f, 1f)
     }

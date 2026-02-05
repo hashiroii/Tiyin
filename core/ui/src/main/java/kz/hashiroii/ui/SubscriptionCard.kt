@@ -65,6 +65,7 @@ fun SubscriptionCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
+            val today = LocalDate.now()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,7 +132,6 @@ fun SubscriptionCard(
                         .weight(1f)
                         .padding(top = 8.dp)
                 ) {
-                    val today = java.time.LocalDate.now()
                     val daysLeft = subscription.daysUntilNextPayment(today)
                     Text(
                         text = if (daysLeft > 0) {

@@ -20,6 +20,7 @@ import kz.hashiroii.data.service.NotificationListener
 import kz.hashiroii.data.service.SubscriptionDetectionService
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.repository.AuthRepository
+import java.time.LocalDate
 import kz.hashiroii.domain.repository.FirestoreSubscriptionRepository
 import kz.hashiroii.domain.repository.NotificationRepository
 import java.util.UUID
@@ -57,9 +58,12 @@ class NotificationRepositoryImpl @Inject constructor(
                 return@withContext
             }
             try {
+                val today = LocalDate.now()
                 val subscriptions = firestoreSubscriptionRepository.getUserSubscriptions(userId).first()
-                val roomEntities = subscriptions.map { SubscriptionMapper.toEntity(it).toRoomEntity() }
+                val rolledSubscriptions = subscriptions.map { it.rolledIfExpired(today) }
+                val roomEntities = rolledSubscriptions.map { SubscriptionMapper.toEntity(it).toRoomEntity() }
                 subscriptionDao.replaceAll(roomEntities)
+                firestoreSubscriptionRepository.syncSubscriptions(userId, rolledSubscriptions)
             } catch (e: Exception) {
                 // Firestore failed (e.g. API key expired); keep existing local data.
             }
@@ -97,7 +101,22 @@ class NotificationRepositoryImpl @Inject constructor(
 
     override fun getSubscriptions(): Flow<List<Subscription>> {
         return subscriptionDao.getAllFlow().map { roomEntities ->
-            roomEntities.map { it.toEntity() }.map { SubscriptionMapper.toDomain(it) }
+            val today = LocalDate.now()
+            val domainList = roomEntities.map { it.toEntity() }.map { SubscriptionMapper.toDomain(it) }
+            val rolledList = domainList.map { it.rolledIfExpired(today) }
+            rolledList.zip(domainList).filter { (rolled, orig) -> rolled != orig }.forEach { (rolled, orig) ->
+                repositoryScope.launch {
+                    withContext(Dispatchers.IO) {
+                        updateSubscription(orig, rolled)
+                        authRepository.getCurrentUser()?.let { user ->
+                            rolled.id?.let { id ->
+                                firestoreSubscriptionRepository.updateSubscription(user.id, id, rolled)
+                            }
+                        }
+                    }
+                }
+            }
+            rolledList
         }
     }
 
@@ -117,9 +136,20 @@ class NotificationRepositoryImpl @Inject constructor(
 
     override suspend fun getSubscriptionById(serviceName: String, serviceDomain: String): Subscription? {
         return withContext(Dispatchers.IO) {
-            subscriptionDao.getByServiceNameAndDomain(serviceName, serviceDomain)
+            val subscription = subscriptionDao.getByServiceNameAndDomain(serviceName, serviceDomain)
                 ?.toEntity()
-                ?.let { SubscriptionMapper.toDomain(it) }
+                ?.let { SubscriptionMapper.toDomain(it) } ?: return@withContext null
+            val today = LocalDate.now()
+            val rolled = subscription.rolledIfExpired(today)
+            if (rolled != subscription) {
+                updateSubscription(subscription, rolled)
+                authRepository.getCurrentUser()?.let { user ->
+                    rolled.id?.let { id ->
+                        firestoreSubscriptionRepository.updateSubscription(user.id, id, rolled)
+                    }
+                }
+            }
+            rolled
         }
     }
 
