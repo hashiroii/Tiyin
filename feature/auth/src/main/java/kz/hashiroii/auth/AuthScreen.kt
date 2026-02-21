@@ -1,4 +1,4 @@
-package kz.hashiroii.tiyin.auth
+package kz.hashiroii.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kz.hashiroii.tiyin.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kz.hashiroii.auth.R
 
 @Composable
 fun AuthScreen(
@@ -33,7 +34,7 @@ fun AuthScreen(
     onSignInClick: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentState = uiState
     
     LaunchedEffect(currentState) {

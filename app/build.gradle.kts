@@ -60,6 +60,7 @@ android {
 
 dependencies {
     implementation(project(":feature:home"))
+    implementation(project(":feature:auth"))
     implementation(project(":feature:analytics"))
     implementation(project(":feature:groups"))
     implementation(project(":feature:profile"))

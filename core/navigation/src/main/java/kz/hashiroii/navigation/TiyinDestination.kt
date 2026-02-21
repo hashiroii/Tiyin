@@ -6,6 +6,11 @@ import kotlinx.serialization.Serializable
 object Home : TiyinDestination
 
 @Serializable
+data class Auth(
+    val id: String
+) : TiyinDestination
+
+@Serializable
 object Analytics : TiyinDestination
 
 @Serializable

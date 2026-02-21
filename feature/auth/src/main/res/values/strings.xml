@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_title">Sync Your Subscriptions</string>
+    <string name="auth_description">Sign in with Google to store your subscriptions in your account instead of on this device. Your data will be synced across all your devices.</string>
+    <string name="auth_sign_in_with_google">Sign in with Google</string>
+    <string name="auth_skip">Skip for now</string>
+</resources>

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kz.hashiroii.domain.usecase.auth.GetCurrentUserUseCase
 import kz.hashiroii.domain.usecase.logo.GetLogoUrlUseCase
 import kz.hashiroii.domain.usecase.logo.PrefetchLogosUseCase
@@ -42,9 +43,6 @@ class HomeViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private val _sortOrder = MutableStateFlow(SubscriptionSortOrder.EXPIRY_DATE)
 
@@ -144,7 +142,12 @@ class HomeViewModel @Inject constructor(
 
     private fun refreshSubscriptions() {
         viewModelScope.launch {
-            _isRefreshing.value = true
+            _uiState.update { currentState ->
+                if (currentState is HomeUiState.Success) {
+                    currentState.copy(isRefreshing = true)
+                } else currentState
+            }
+
             try {
                 refreshSubscriptionsUseCase()
             } catch (e: Exception) {
@@ -154,7 +157,11 @@ class HomeViewModel @Inject constructor(
                     )
                 )
             } finally {
-                _isRefreshing.value = false
+                _uiState.update { currentState ->
+                    if (currentState is HomeUiState.Success) {
+                        currentState.copy(isRefreshing = false)
+                    } else currentState
+                }
             }
         }
     }

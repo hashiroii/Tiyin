@@ -1,6 +1,5 @@
 package kz.hashiroii.tiyin
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -16,8 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -36,15 +33,12 @@ import kz.hashiroii.navigation.Groups
 import kz.hashiroii.navigation.Home
 import kz.hashiroii.navigation.Profile
 import kz.hashiroii.navigation.Settings
-import kz.hashiroii.tiyin.auth.AuthIntent
-import kz.hashiroii.tiyin.auth.AuthScreen
-import kz.hashiroii.tiyin.auth.AuthViewModel
-import kz.hashiroii.tiyin.auth.GoogleSignInHelper
 import kz.hashiroii.tiyin.navigation.TiyinNavHost
 import kz.hashiroii.tiyin.ui.rememberTiyinAppState
-import kz.hashiroii.subscriptionmanager.SubscriptionManagerIntent
-import androidx.compose.runtime.remember
-import androidx.hilt.navigation.compose.hiltViewModel
+import kz.hashiroii.auth.AuthIntent
+import kz.hashiroii.auth.AuthScreen
+import kz.hashiroii.auth.AuthViewModel
+import kz.hashiroii.auth.GoogleSignInHelper
 import javax.inject.Inject
 
 @AndroidEntryPoint

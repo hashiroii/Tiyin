@@ -1,6 +1,5 @@
 package kz.hashiroii.home
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,18 +30,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kz.hashiroii.designsystem.theme.TiyinTheme
 import kz.hashiroii.domain.model.service.ServiceInfo
 import kz.hashiroii.domain.model.service.ServiceType
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
-import kz.hashiroii.home.R
 import kz.hashiroii.ui.ActiveSubscriptionsRow
 import kz.hashiroii.ui.SubscriptionCard
 import kz.hashiroii.ui.TotalSpendingCard
@@ -58,12 +56,10 @@ fun HomeScreenRoute(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     
     HomeScreen(
         uiState = uiState,
-        isRefreshing = isRefreshing,
         onRefresh = { viewModel.onIntent(HomeIntent.RefreshSubscriptions) },
         onIntent = viewModel::onIntent,
         onAddSubscriptionClick = onAddSubscriptionClick,
@@ -75,13 +71,13 @@ fun HomeScreenRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    modifier: Modifier = Modifier,
     uiState: HomeUiState,
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
     onIntent: (HomeIntent) -> Unit,
     onAddSubscriptionClick: () -> Unit,
-    onEditSubscriptionClick: (String, String) -> Unit,
-    modifier: Modifier = Modifier
+    onEditSubscriptionClick: (String, String) -> Unit
 ) {
     Column(
         modifier = modifier

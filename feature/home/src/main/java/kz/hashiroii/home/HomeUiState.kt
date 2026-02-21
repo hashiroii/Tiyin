@@ -12,6 +12,7 @@ sealed interface HomeUiState {
         val totalCost: Double,
         val totalCostCurrency: String,
         val logoUrls: Map<String, String?> = emptyMap(),
+        val isRefreshing: Boolean = false,
         val sortOrder: SubscriptionSortOrder = SubscriptionSortOrder.EXPIRY_DATE
     ) : HomeUiState
     
