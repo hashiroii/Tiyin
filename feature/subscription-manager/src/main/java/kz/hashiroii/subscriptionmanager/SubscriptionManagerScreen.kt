@@ -60,10 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kz.hashiroii.designsystem.theme.TiyinTheme
-import kz.hashiroii.domain.model.service.ServiceInfo
-import kz.hashiroii.domain.model.service.ServiceType
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
-import kz.hashiroii.domain.usecase.subscription.ServiceSearchResult
 import kz.hashiroii.ui.R as UiR
 import kz.hashiroii.ui.ServiceLogo
 import java.time.LocalDate
@@ -72,16 +69,21 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriptionManagerScreenRoute(
-    subscriptionId: String? = null,
+    modifier: Modifier = Modifier,
     serviceName: String? = null,
     serviceDomain: String? = null,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
     viewModel: SubscriptionManagerViewModel = hiltViewModel(),
     onDeleteSubscriptionReady: ((() -> Unit) -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
+    LaunchedEffect(serviceName, serviceDomain) {
+        if (serviceName != null && serviceDomain != null) {
+            viewModel.loadForEdit(serviceName, serviceDomain)
+        }
+    }
+
     LaunchedEffect(uiState) {
         val currentState = uiState
         if (currentState is SubscriptionManagerUiState.Editing && currentState.isEditMode) {
@@ -90,28 +92,19 @@ fun SubscriptionManagerScreenRoute(
             }
         }
     }
-    
-    LaunchedEffect(subscriptionId, serviceName, serviceDomain) {
-        if (serviceName != null && serviceDomain != null) {
-            // Load subscription for editing
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                val subscription = viewModel.getSubscriptionForEdit(serviceName, serviceDomain)
-                subscription?.let { viewModel.initializeForEdit(it) }
-            }
-        }
-    }
-    
+
     LaunchedEffect(uiState) {
         if (uiState is SubscriptionManagerUiState.Success) {
             onBackClick()
         }
     }
-    
+
     SubscriptionManagerScreen(
         uiState = uiState,
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
-        modifier = modifier
+        modifier = modifier,
+        getLogo = viewModel::getLogoUrl
     )
 }
 
@@ -120,7 +113,9 @@ fun SubscriptionManagerScreen(
     uiState: SubscriptionManagerUiState,
     onIntent: (SubscriptionManagerIntent) -> Unit,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    getLogo: (String) -> String? = { null }
+
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize()
@@ -136,7 +131,7 @@ fun SubscriptionManagerScreen(
                     CircularProgressIndicator()
                 }
             }
-            
+
             is SubscriptionManagerUiState.Editing -> {
                 SubscriptionManagerContent(
                     state = state,
@@ -144,14 +139,15 @@ fun SubscriptionManagerScreen(
                     onBackClick = onBackClick,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
+                    getLogo = getLogo
                 )
             }
-            
+
             is SubscriptionManagerUiState.Success -> {
                 // Navigation handled by LaunchedEffect
             }
-            
+
             is SubscriptionManagerUiState.Error -> {
                 Box(
                     modifier = Modifier
@@ -174,6 +170,7 @@ fun SubscriptionManagerScreen(
 private fun SubscriptionManagerContent(
     state: SubscriptionManagerUiState.Editing,
     onIntent: (SubscriptionManagerIntent) -> Unit,
+    getLogo: (String) -> String?,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -181,11 +178,11 @@ private fun SubscriptionManagerContent(
     var showEndDatePicker by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showPeriodDialog by remember { mutableStateOf(false) }
-    
+
     val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    
+
     val isAmountValid = remember(state.amount) {
         if (state.amount.isBlank()) return@remember false
         val trimmed = state.amount.trim()
@@ -198,27 +195,27 @@ private fun SubscriptionManagerContent(
             false
         }
     }
-    
+
     val isAmountInvalid = remember(state.amount) {
         state.amount.isNotBlank() && !isAmountValid
     }
-    
+
     val isCurrencyValid = remember(state.currency) {
         state.currency.isNotBlank()
     }
-    
+
     val isStartDateValid = remember(state.startDate) {
         state.startDate != null
     }
-    
+
     val isEndDateValid = remember(state.endDate, state.startDate) {
         state.endDate != null && (state.startDate == null || !state.endDate.isBefore(state.startDate))
     }
-    
+
     val isPeriodValid = remember(state.period) {
         true
     }
-    
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -240,7 +237,7 @@ private fun SubscriptionManagerContent(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !state.isLoading
             )
-            
+
             // Service Search Result
             state.serviceSearchResult?.let { result ->
                 Card(
@@ -254,37 +251,11 @@ private fun SubscriptionManagerContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        if (result.logoUrl != null) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(result.logoUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Surface(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = result.serviceInfo.name.take(1).uppercase(),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
+                        ServiceLogo(
+                            serviceInfo = result.serviceInfo,
+                            logoUrl = getLogo(result.serviceInfo.domain),
+                            size = 48.dp
+                        )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = result.serviceInfo.name,
@@ -343,7 +314,7 @@ private fun SubscriptionManagerContent(
                 }
             }
         }
-        
+
         // Amount and Currency Row
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -381,13 +352,13 @@ private fun SubscriptionManagerContent(
                 modifier = Modifier.weight(2f),
                 enabled = !state.isLoading
             )
-            
+
             OutlinedTextField(
                 value = state.currency,
                 onValueChange = { },
                 label = { Text(stringResource(R.string.subscription_manager_currency)) },
                 leadingIcon = {
-                    Icon(   
+                    Icon(
                         imageVector = Icons.Default.SwapHoriz,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -407,7 +378,7 @@ private fun SubscriptionManagerContent(
                 enabled = false
             )
         }
-        
+
         // Period
         val periodDisplayName = when (state.period) {
             SubscriptionPeriod.MONTHLY -> stringResource(UiR.string.period_monthly)
@@ -444,7 +415,7 @@ private fun SubscriptionManagerContent(
             readOnly = true,
             enabled = false
         )
-        
+
         // Start Date
         OutlinedTextField(
             value = state.startDate?.format(dateFormatter) ?: "",
@@ -462,7 +433,7 @@ private fun SubscriptionManagerContent(
             },
             colors = OutlinedTextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledBorderColor = MaterialTheme.colorScheme.outline, 
+                disabledBorderColor = MaterialTheme.colorScheme.outline,
                 disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
@@ -477,7 +448,7 @@ private fun SubscriptionManagerContent(
             readOnly = true,
             enabled = false
         )
-        
+
         // End Date (read-only, auto-calculated) - Info Card
         if (state.endDate != null) {
             Card(
@@ -516,7 +487,7 @@ private fun SubscriptionManagerContent(
                 }
             }
         }
-        
+
         // Error Message
         state.errorMessage?.let { error ->
             Text(
@@ -526,9 +497,9 @@ private fun SubscriptionManagerContent(
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
         }
-        
+
         Spacer(modifier = Modifier.weight(1f))
-        
+
         // Save Button
         Button(
             onClick = { onIntent(SubscriptionManagerIntent.SaveSubscription) },
@@ -551,7 +522,7 @@ private fun SubscriptionManagerContent(
             )
         }
     }
-    
+
     // Date Pickers
     if (showStartDatePicker) {
         DatePickerDialog(
@@ -563,8 +534,8 @@ private fun SubscriptionManagerContent(
             onDismiss = { showStartDatePicker = false }
         )
     }
-    
-    
+
+
     // Currency Dialog
     if (showCurrencyDialog) {
         CurrencySelectionDialog(
@@ -576,7 +547,7 @@ private fun SubscriptionManagerContent(
             onDismiss = { showCurrencyDialog = false }
         )
     }
-    
+
     // Period Dialog
     if (showPeriodDialog) {
         PeriodSelectionDialog(
@@ -603,7 +574,7 @@ private fun DatePickerDialog(
             .toInstant()
             .toEpochMilli()
     )
-    
+
     DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
@@ -637,7 +608,7 @@ private fun CurrencySelectionDialog(
     onDismiss: () -> Unit
 ) {
     val currencies = listOf("USD", "KZT", "RUB", "EUR", "GBP")
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.subscription_manager_select_currency)) },
@@ -669,7 +640,7 @@ private fun PeriodSelectionDialog(
     onDismiss: () -> Unit
 ) {
     val periods = SubscriptionPeriod.values()
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.subscription_manager_select_period)) },
@@ -727,111 +698,111 @@ private fun SubscriptionManagerScreenAddingLightPreview() {
     }
 }
 
-@Preview(name = "Adding Mode with Selected Service - Light", showBackground = true)
-@Composable
-private fun SubscriptionManagerScreenAddingWithServiceLightPreview() {
-    TiyinTheme(themePreference = "Light") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            SubscriptionManagerScreen(
-                uiState = SubscriptionManagerUiState.Editing(
-                    isEditMode = false,
-                    originalSubscription = null,
-                    serviceSearchQuery = "",
-                    selectedService = ServiceSearchResult(
-                        serviceInfo = ServiceInfo(
-                            name = "Spotify",
-                            domain = "spotify.com",
-                            logoResId = 0,
-                            primaryColor = 0xFF1DB954,
-                            secondaryColor = 0xFF191414,
-                            serviceType = ServiceType.STREAMING
-                        ),
-                        logoUrl = null
-                    ),
-                    amount = "9.99",
-                    currency = "USD",
-                    startDate = LocalDate.now(),
-                    endDate = LocalDate.now().plusMonths(1),
-                    period = SubscriptionPeriod.MONTHLY
-                ),
-                onIntent = {},
-                onBackClick = {}
-            )
-        }
-    }
-}
-
-@Preview(name = "Editing Mode - Light", showBackground = true)
-@Composable
-private fun SubscriptionManagerScreenEditingLightPreview() {
-    TiyinTheme(themePreference = "Light") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            SubscriptionManagerScreen(
-                uiState = SubscriptionManagerUiState.Editing(
-                    isEditMode = true,
-                    originalSubscription = null,
-                    serviceSearchQuery = "",
-                    selectedService = ServiceSearchResult(
-                        serviceInfo = ServiceInfo(
-                            name = "Netflix",
-                            domain = "netflix.com",
-                            logoResId = 0,
-                            primaryColor = 0xFFE50914,
-                            secondaryColor = 0xFF000000,
-                            serviceType = ServiceType.STREAMING
-                        ),
-                        logoUrl = null
-                    ),
-                    amount = "15.99",
-                    currency = "USD",
-                    startDate = LocalDate.now().minusMonths(2),
-                    endDate = LocalDate.now().plusMonths(1),
-                    period = SubscriptionPeriod.MONTHLY
-                ),
-                onIntent = {},
-                onBackClick = {}
-            )
-        }
-    }
-}
-
-@Preview(name = "Adding Mode - Dark", showBackground = true)
-@Composable
-private fun SubscriptionManagerScreenAddingDarkPreview() {
-    TiyinTheme(themePreference = "Dark") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            SubscriptionManagerScreen(
-                uiState = SubscriptionManagerUiState.Editing(
-                    isEditMode = false,
-                    originalSubscription = null,
-                    serviceSearchQuery = "",
-                    selectedService = ServiceSearchResult(
-                        serviceInfo = ServiceInfo(
-                            name = "Apple Music",
-                            domain = "apple.com",
-                            logoResId = 0,
-                            primaryColor = 0xFFFA243C,
-                            secondaryColor = 0xFFFFFFFF,
-                            serviceType = ServiceType.STREAMING
-                        ),
-                        logoUrl = null
-                    ),
-                    amount = "10.99",
-                    currency = "USD",
-                    startDate = LocalDate.now(),
-                    endDate = LocalDate.now().plusMonths(1),
-                    period = SubscriptionPeriod.MONTHLY
-                ),
-                onIntent = {},
-                onBackClick = {}
-            )
-        }
-    }
-}
+//@Preview(name = "Adding Mode with Selected Service - Light", showBackground = true)
+//@Composable
+//private fun SubscriptionManagerScreenAddingWithServiceLightPreview() {
+//    TiyinTheme(themePreference = "Light") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            SubscriptionManagerScreen(
+//                uiState = SubscriptionManagerUiState.Editing(
+//                    isEditMode = false,
+//                    originalSubscription = null,
+//                    serviceSearchQuery = "",
+//                    selectedService = ServiceSearchResult(
+//                        serviceInfo = ServiceInfo(
+//                            name = "Spotify",
+//                            domain = "spotify.com",
+//                            logoResId = 0,
+//                            primaryColor = 0xFF1DB954,
+//                            secondaryColor = 0xFF191414,
+//                            serviceType = ServiceType.STREAMING
+//                        ),
+//                        logoUrl = null
+//                    ),
+//                    amount = "9.99",
+//                    currency = "USD",
+//                    startDate = LocalDate.now(),
+//                    endDate = LocalDate.now().plusMonths(1),
+//                    period = SubscriptionPeriod.MONTHLY
+//                ),
+//                onIntent = {},
+//                onBackClick = {}
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(name = "Editing Mode - Light", showBackground = true)
+//@Composable
+//private fun SubscriptionManagerScreenEditingLightPreview() {
+//    TiyinTheme(themePreference = "Light") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            SubscriptionManagerScreen(
+//                uiState = SubscriptionManagerUiState.Editing(
+//                    isEditMode = true,
+//                    originalSubscription = null,
+//                    serviceSearchQuery = "",
+//                    selectedService = ServiceSearchResult(
+//                        serviceInfo = ServiceInfo(
+//                            name = "Netflix",
+//                            domain = "netflix.com",
+//                            logoResId = 0,
+//                            primaryColor = 0xFFE50914,
+//                            secondaryColor = 0xFF000000,
+//                            serviceType = ServiceType.STREAMING
+//                        ),
+//                        logoUrl = null
+//                    ),
+//                    amount = "15.99",
+//                    currency = "USD",
+//                    startDate = LocalDate.now().minusMonths(2),
+//                    endDate = LocalDate.now().plusMonths(1),
+//                    period = SubscriptionPeriod.MONTHLY
+//                ),
+//                onIntent = {},
+//                onBackClick = {}
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(name = "Adding Mode - Dark", showBackground = true)
+//@Composable
+//private fun SubscriptionManagerScreenAddingDarkPreview() {
+//    TiyinTheme(themePreference = "Dark") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            SubscriptionManagerScreen(
+//                uiState = SubscriptionManagerUiState.Editing(
+//                    isEditMode = false,
+//                    originalSubscription = null,
+//                    serviceSearchQuery = "",
+//                    selectedService = ServiceSearchResult(
+//                        serviceInfo = ServiceInfo(
+//                            name = "Apple Music",
+//                            domain = "apple.com",
+//                            logoResId = 0,
+//                            primaryColor = 0xFFFA243C,
+//                            secondaryColor = 0xFFFFFFFF,
+//                            serviceType = ServiceType.STREAMING
+//                        ),
+//                        logoUrl = null
+//                    ),
+//                    amount = "10.99",
+//                    currency = "USD",
+//                    startDate = LocalDate.now(),
+//                    endDate = LocalDate.now().plusMonths(1),
+//                    period = SubscriptionPeriod.MONTHLY
+//                ),
+//                onIntent = {},
+//                onBackClick = {}
+//            )
+//        }
+//    }
+//}
 

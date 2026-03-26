@@ -5,17 +5,15 @@ import kz.hashiroii.ui.UiText
 
 sealed interface HomeUiState {
     data object Loading : HomeUiState
-    
+
     data class Success(
         val subscriptions: List<Subscription>,
         val activeSubscriptionsCount: Int,
         val totalCost: Double,
         val totalCostCurrency: String,
-        val logoUrls: Map<String, String?> = emptyMap(),
-        val isRefreshing: Boolean = false,
-        val sortOrder: SubscriptionSortOrder = SubscriptionSortOrder.EXPIRY_DATE
+        val isRefreshing: Boolean = false
     ) : HomeUiState
-    
+
     data class Error(
         val message: UiText
     ) : HomeUiState

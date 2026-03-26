@@ -1,5 +1,6 @@
 package kz.hashiroii.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +43,7 @@ import kz.hashiroii.domain.model.service.ServiceInfo
 import kz.hashiroii.domain.model.service.ServiceType
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
+import kz.hashiroii.home.R
 import kz.hashiroii.ui.ActiveSubscriptionsRow
 import kz.hashiroii.ui.SubscriptionCard
 import kz.hashiroii.ui.TotalSpendingCard
@@ -60,11 +63,14 @@ fun HomeScreenRoute(
     
     HomeScreen(
         uiState = uiState,
+        isRefreshing = (uiState as? HomeUiState.Success)?.isRefreshing ?: false,
         onRefresh = { viewModel.onIntent(HomeIntent.RefreshSubscriptions) },
         onIntent = viewModel::onIntent,
         onAddSubscriptionClick = onAddSubscriptionClick,
         onEditSubscriptionClick = onEditSubscriptionClick,
-        modifier = modifier
+        modifier = modifier,
+        getLogo = { domain ->
+            viewModel.getLogoUrl(domain) }
     )
 }
 
@@ -73,11 +79,13 @@ fun HomeScreenRoute(
 fun HomeScreen(
     modifier: Modifier = Modifier,
     uiState: HomeUiState,
+    sortOrder: SubscriptionSortOrder = SubscriptionSortOrder.EXPIRY_DATE,
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
     onIntent: (HomeIntent) -> Unit,
     onAddSubscriptionClick: () -> Unit,
-    onEditSubscriptionClick: (String, String) -> Unit
+    onEditSubscriptionClick: (String, String) -> Unit,
+    getLogo: (String) -> String?
 ) {
     Column(
         modifier = modifier
@@ -104,7 +112,7 @@ fun HomeScreen(
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     androidx.compose.material3.pulltorefresh.PullToRefreshBox(
-                        isRefreshing = isRefreshing,
+                        isRefreshing = uiState.isRefreshing,
                         onRefresh = onRefresh,
                         modifier = Modifier.fillMaxSize()
                     ) {
@@ -127,7 +135,7 @@ fun HomeScreen(
                                 onSortClick = {},
                                 trailingContent = {
                                     SortOrderDropdown(
-                                        currentOrder = uiState.sortOrder,
+                                        currentOrder = sortOrder,
                                         onOrderSelected = { onIntent(HomeIntent.SetSortOrder(it)) }
                                     )
                                 }
@@ -140,13 +148,13 @@ fun HomeScreen(
                         ) { _, subscription ->
                             SubscriptionCard(
                                 subscription = subscription,
-                                logoUrl = uiState.logoUrls[subscription.serviceInfo.domain],
                                 onClick = {
                                     onEditSubscriptionClick(
                                         subscription.serviceInfo.name,
                                         subscription.serviceInfo.domain
                                     )
-                                }
+                                },
+                                logoUrl = getLogo(subscription.serviceInfo.domain) ?: ""
                             )
                         }
                         }
@@ -230,167 +238,166 @@ private fun SortOrderDropdown(
         }
     }
 }
-
-@Preview(name = "Loading - Light", showBackground = true)
-@Composable
-private fun HomeScreenLoadingLightPreview() {
-    TiyinTheme(themePreference = "Light") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            HomeScreen(
-                uiState = HomeUiState.Loading,
-                onIntent = {},
-                onAddSubscriptionClick = {},
-                onEditSubscriptionClick = { _, _ -> }
-            )
-        }
-    }
-}
-
-@Preview(name = "Loading - Dark", showBackground = true)
-@Composable
-private fun HomeScreenLoadingDarkPreview() {
-    TiyinTheme(themePreference = "Dark") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            HomeScreen(
-                uiState = HomeUiState.Loading,
-                onIntent = {},
-                onAddSubscriptionClick = {},
-                onEditSubscriptionClick = { _, _ -> }
-            )
-        }
-    }
-}
-
-@Preview(name = "Success - Light", showBackground = true)
-@Composable
-private fun HomeScreenSuccessLightPreview() {
-    TiyinTheme(themePreference = "Light") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            HomeScreen(
-                uiState = HomeUiState.Success(
-                    subscriptions = listOf(
-                        Subscription(
-                            serviceInfo = ServiceInfo(
-                                name = "Spotify",
-                                domain = "spotify.com",
-                                logoResId = 0,
-                                primaryColor = 0xFF1DB954,
-                                secondaryColor = 0xFF191414,
-                                serviceType = ServiceType.STREAMING
-                            ),
-                            amount = BigDecimal("9.99"),
-                            currency = "USD",
-                            period = SubscriptionPeriod.MONTHLY,
-                            nextPaymentDate = LocalDate.now().plusDays(5),
-                            currentPaymentDate = LocalDate.now().minusDays(25)
-                        ),
-                        Subscription(
-                            serviceInfo = ServiceInfo(
-                                name = "Netflix",
-                                domain = "netflix.com",
-                                logoResId = 0,
-                                primaryColor = 0xFFE50914,
-                                secondaryColor = 0xFF000000,
-                                serviceType = ServiceType.STREAMING
-                            ),
-                            amount = BigDecimal("15.99"),
-                            currency = "USD",
-                            period = SubscriptionPeriod.MONTHLY,
-                            nextPaymentDate = LocalDate.now().plusDays(12),
-                            currentPaymentDate = LocalDate.now().minusDays(18)
-                        )
-                    ),
-                    activeSubscriptionsCount = 2,
-                    totalCost = 12470.40,
-                    totalCostCurrency = "KZT",
-                    sortOrder = SubscriptionSortOrder.EXPIRY_DATE
-                ),
-                onIntent = {},
-                onAddSubscriptionClick = {},
-                onEditSubscriptionClick = { _, _ -> }
-            )
-        }
-    }
-}
-
-@Preview(name = "Success - Dark", showBackground = true)
-@Composable
-private fun HomeScreenSuccessDarkPreview() {
-    TiyinTheme(themePreference = "Dark") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            HomeScreen(
-                uiState = HomeUiState.Success(
-                    subscriptions = listOf(
-                        Subscription(
-                            serviceInfo = ServiceInfo(
-                                name = "Spotify",
-                                domain = "spotify.com",
-                                logoResId = 0,
-                                primaryColor = 0xFF1DB954,
-                                secondaryColor = 0xFF191414,
-                                serviceType = ServiceType.STREAMING
-                            ),
-                            amount = BigDecimal("9.99"),
-                            currency = "USD",
-                            period = SubscriptionPeriod.MONTHLY,
-                            nextPaymentDate = LocalDate.now().plusDays(5),
-                            currentPaymentDate = LocalDate.now().minusDays(25)
-                        )
-                    ),
-                    activeSubscriptionsCount = 1,
-                    totalCost = 4795.20,
-                    totalCostCurrency = "KZT"
-                ),
-                onIntent = {},
-                onAddSubscriptionClick = {},
-                onEditSubscriptionClick = { _, _ -> }
-            )
-        }
-    }
-}
-
-@Preview(name = "Error - Light", showBackground = true)
-@Composable
-private fun HomeScreenErrorLightPreview() {
-    TiyinTheme(themePreference = "Light") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            HomeScreen(
-                uiState = HomeUiState.Error(
-                    message = UiText.DynamicString("Failed to load subscriptions")
-                ),
-                onIntent = {},
-                onAddSubscriptionClick = {},
-                onEditSubscriptionClick = { _, _ -> }
-            )
-        }
-    }
-}
-
-@Preview(name = "Error - Dark", showBackground = true)
-@Composable
-private fun HomeScreenErrorDarkPreview() {
-    TiyinTheme(themePreference = "Dark") {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            HomeScreen(
-                uiState = HomeUiState.Error(
-                    message = UiText.DynamicString("Failed to load subscriptions")
-                ),
-                onIntent = {},
-                onAddSubscriptionClick = {},
-                onEditSubscriptionClick = { _, _ -> }
-            )
-        }
-    }
-}
+//
+//@Preview(name = "Loading - Light", showBackground = true)
+//@Composable
+//private fun HomeScreenLoadingLightPreview() {
+//    TiyinTheme(themePreference = "Light") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            HomeScreen(
+//                uiState = HomeUiState.Loading,
+//                onIntent = {},
+//                onAddSubscriptionClick = {},
+//                onEditSubscriptionClick = { _, _ -> }
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(name = "Loading - Dark", showBackground = true)
+//@Composable
+//private fun HomeScreenLoadingDarkPreview() {
+//    TiyinTheme(themePreference = "Dark") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            HomeScreen(
+//                uiState = HomeUiState.Loading,
+//                onIntent = {},
+//                onAddSubscriptionClick = {},
+//                onEditSubscriptionClick = { _, _ -> }
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(name = "Success - Light", showBackground = true)
+//@Composable
+//private fun HomeScreenSuccessLightPreview() {
+//    TiyinTheme(themePreference = "Light") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            HomeScreen(
+//                uiState = HomeUiState.Success(
+//                    subscriptions = listOf(
+//                        Subscription(
+//                            serviceInfo = ServiceInfo(
+//                                name = "Spotify",
+//                                domain = "spotify.com",
+//                                logoResId = 0,
+//                                primaryColor = 0xFF1DB954,
+//                                secondaryColor = 0xFF191414,
+//                                serviceType = ServiceType.STREAMING
+//                            ),
+//                            amount = BigDecimal("9.99"),
+//                            currency = "USD",
+//                            period = SubscriptionPeriod.MONTHLY,
+//                            nextPaymentDate = LocalDate.now().plusDays(5),
+//                            currentPaymentDate = LocalDate.now().minusDays(25)
+//                        ),
+//                        Subscription(
+//                            serviceInfo = ServiceInfo(
+//                                name = "Netflix",
+//                                domain = "netflix.com",
+//                                logoResId = 0,
+//                                primaryColor = 0xFFE50914,
+//                                secondaryColor = 0xFF000000,
+//                                serviceType = ServiceType.STREAMING
+//                            ),
+//                            amount = BigDecimal("15.99"),
+//                            currency = "USD",
+//                            period = SubscriptionPeriod.MONTHLY,
+//                            nextPaymentDate = LocalDate.now().plusDays(12),
+//                            currentPaymentDate = LocalDate.now().minusDays(18)
+//                        )
+//                    ),
+//                    activeSubscriptionsCount = 2,
+//                    totalCost = 12470.40,
+//                    totalCostCurrency = "KZT",
+//                ),
+//                onIntent = {},
+//                onAddSubscriptionClick = {},
+//                onEditSubscriptionClick = { _, _ -> }
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(name = "Success - Dark", showBackground = true)
+//@Composable
+//private fun HomeScreenSuccessDarkPreview() {
+//    TiyinTheme(themePreference = "Dark") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            HomeScreen(
+//                uiState = HomeUiState.Success(
+//                    subscriptions = listOf(
+//                        Subscription(
+//                            serviceInfo = ServiceInfo(
+//                                name = "Spotify",
+//                                domain = "spotify.com",
+//                                logoResId = 0,
+//                                primaryColor = 0xFF1DB954,
+//                                secondaryColor = 0xFF191414,
+//                                serviceType = ServiceType.STREAMING
+//                            ),
+//                            amount = BigDecimal("9.99"),
+//                            currency = "USD",
+//                            period = SubscriptionPeriod.MONTHLY,
+//                            nextPaymentDate = LocalDate.now().plusDays(5),
+//                            currentPaymentDate = LocalDate.now().minusDays(25)
+//                        )
+//                    ),
+//                    activeSubscriptionsCount = 1,
+//                    totalCost = 4795.20,
+//                    totalCostCurrency = "KZT"
+//                ),
+//                onIntent = {},
+//                onAddSubscriptionClick = {},
+//                onEditSubscriptionClick = { _, _ -> }
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(name = "Error - Light", showBackground = true)
+//@Composable
+//private fun HomeScreenErrorLightPreview() {
+//    TiyinTheme(themePreference = "Light") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            HomeScreen(
+//                uiState = HomeUiState.Error(
+//                    message = UiText.DynamicString("Failed to load subscriptions")
+//                ),
+//                onIntent = {},
+//                onAddSubscriptionClick = {},
+//                onEditSubscriptionClick = { _, _ -> }
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(name = "Error - Dark", showBackground = true)
+//@Composable
+//private fun HomeScreenErrorDarkPreview() {
+//    TiyinTheme(themePreference = "Dark") {
+//        Surface(
+//            color = MaterialTheme.colorScheme.background
+//        ) {
+//            HomeScreen(
+//                uiState = HomeUiState.Error(
+//                    message = UiText.DynamicString("Failed to load subscriptions")
+//                ),
+//                onIntent = {},
+//                onAddSubscriptionClick = {},
+//                onEditSubscriptionClick = { _, _ -> }
+//            )
+//        }
+//    }
+//}

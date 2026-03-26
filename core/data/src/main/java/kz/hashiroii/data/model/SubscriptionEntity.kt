@@ -12,5 +12,5 @@ data class SubscriptionEntity(
     val currentPaymentDate: LocalDate,
     val serviceType: String,
     val primaryColor: Long = 0,
-    val secondaryColor: Long = 0
+    val secondaryColor: Long = 0,
 )

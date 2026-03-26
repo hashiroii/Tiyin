@@ -6,11 +6,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kz.hashiroii.domain.model.service.ServiceInfo
 import kz.hashiroii.domain.model.service.ServiceType
-import kz.hashiroii.domain.usecase.logo.GetLogoUrlUseCase
 import javax.inject.Inject
 
 class SearchServiceUseCase @Inject constructor(
-    private val getLogoUrlUseCase: GetLogoUrlUseCase
 ) {
     operator fun invoke(query: String): Flow<ServiceSearchResult?> {
         return flow {
@@ -26,7 +24,6 @@ class SearchServiceUseCase @Inject constructor(
             val serviceInfo = ServiceInfo(
                 name = serviceName,
                 domain = domain,
-                logoResId = 0,
                 primaryColor = 0xFF6200EE,
                 secondaryColor = 0xFF000000,
                 serviceType = ServiceType.OTHER
@@ -34,16 +31,6 @@ class SearchServiceUseCase @Inject constructor(
             
             // Get logo URL for the domain - collect first value
             var logoUrl: String? = null
-            getLogoUrlUseCase(domain).collect { url ->
-                logoUrl = url
-                emit(
-                    ServiceSearchResult(
-                        serviceInfo = serviceInfo,
-                        logoUrl = logoUrl
-                    )
-                )
-                return@collect
-            }
         }
     }
     

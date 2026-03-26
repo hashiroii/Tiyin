@@ -6,6 +6,8 @@ import kz.hashiroii.domain.model.service.ServiceType
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
 import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 
 object SubscriptionMapper {
     fun toDomain(entity: SubscriptionEntity): Subscription {
@@ -16,7 +18,6 @@ object SubscriptionMapper {
             serviceInfo = ServiceInfo(
                 name = entity.serviceName,
                 domain = entity.serviceDomain,
-                logoResId = 0,
                 primaryColor = entity.primaryColor,
                 secondaryColor = entity.secondaryColor,
                 serviceType = parseServiceType(entity.serviceType)

@@ -76,7 +76,6 @@ class ServiceRecognizer @Inject constructor(
                     return ServiceInfo(
                         name = serviceMapping.name,
                         domain = serviceMapping.domain,
-                        logoResId = 0,
                         primaryColor = serviceMapping.primaryColor,
                         secondaryColor = serviceMapping.secondaryColor,
                         serviceType = serviceMapping.serviceType
@@ -90,7 +89,6 @@ class ServiceRecognizer @Inject constructor(
             return ServiceInfo(
                 name = mapping.name,
                 domain = mapping.domain,
-                logoResId = 0,
                 primaryColor = mapping.primaryColor,
                 secondaryColor = mapping.secondaryColor,
                 serviceType = mapping.serviceType
@@ -102,7 +100,6 @@ class ServiceRecognizer @Inject constructor(
         return ServiceInfo(
             name = appName,
             domain = fallbackDomain,
-            logoResId = 0,
             primaryColor = 0xFF6200EE,
             secondaryColor = 0xFF000000,
             serviceType = ServiceType.OTHER

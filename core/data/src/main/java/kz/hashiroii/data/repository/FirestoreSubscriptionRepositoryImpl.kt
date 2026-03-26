@@ -8,18 +8,19 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kz.hashiroii.data.mapper.SubscriptionMapper
+import kz.hashiroii.data.model.SubscriptionEntity
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.repository.FirestoreSubscriptionRepository
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Singleton
 class FirestoreSubscriptionRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
 ) : FirestoreSubscriptionRepository {
     
     override fun getUserSubscriptions(userId: String): Flow<List<Subscription>> = flow {
@@ -149,10 +150,11 @@ data class SubscriptionFirestoreEntity(
     val primaryColor: Long = 0,
     val secondaryColor: Long = 0,
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val logoUrl: String = ""
 ) {
-    fun toEntity(id: String): kz.hashiroii.data.model.SubscriptionEntity {
-        return kz.hashiroii.data.model.SubscriptionEntity(
+    fun toEntity(id: String): SubscriptionEntity {
+        return SubscriptionEntity(
             id = id,
             serviceName = serviceName,
             serviceDomain = serviceDomain,
@@ -166,12 +168,12 @@ data class SubscriptionFirestoreEntity(
                 .toLocalDate(),
             serviceType = serviceType,
             primaryColor = primaryColor,
-            secondaryColor = secondaryColor
+            secondaryColor = secondaryColor,
         )
     }
     
     companion object {
-        fun fromEntity(entity: kz.hashiroii.data.model.SubscriptionEntity): SubscriptionFirestoreEntity {
+        fun fromEntity(entity: SubscriptionEntity): SubscriptionFirestoreEntity {
             return SubscriptionFirestoreEntity(
                 serviceName = entity.serviceName,
                 serviceDomain = entity.serviceDomain,

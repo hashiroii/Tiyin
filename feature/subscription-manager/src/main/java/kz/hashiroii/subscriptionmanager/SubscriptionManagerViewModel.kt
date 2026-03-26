@@ -9,18 +9,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kz.hashiroii.domain.model.service.ServiceInfo
+import kz.hashiroii.domain.model.service.ServiceType
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
+import kz.hashiroii.domain.repository.LogoRepository
 import kz.hashiroii.domain.usecase.preferences.GetCurrencyUseCase
-import kz.hashiroii.domain.usecase.logo.GetLogoUrlUseCase
 import kz.hashiroii.domain.usecase.subscription.AddSubscriptionUseCase
 import kz.hashiroii.domain.usecase.subscription.DeleteSubscriptionUseCase
 import kz.hashiroii.domain.usecase.subscription.GetSubscriptionsUseCase
 import kz.hashiroii.domain.usecase.subscription.SearchServiceUseCase
+import kz.hashiroii.domain.usecase.subscription.ServiceSearchResult
 import kz.hashiroii.domain.usecase.subscription.UpdateSubscriptionUseCase
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -32,10 +36,9 @@ class SubscriptionManagerViewModel @Inject constructor(
     private val addSubscriptionUseCase: AddSubscriptionUseCase,
     private val updateSubscriptionUseCase: UpdateSubscriptionUseCase,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCase,
-    private val searchServiceUseCase: SearchServiceUseCase,
     private val getCurrencyUseCase: GetCurrencyUseCase,
     private val getSubscriptionsUseCase: GetSubscriptionsUseCase,
-    private val getLogoUrlUseCase: GetLogoUrlUseCase
+    private val getLogoRepository: LogoRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SubscriptionManagerUiState>(
@@ -65,36 +68,28 @@ class SubscriptionManagerViewModel @Inject constructor(
         }
     }
 
-    fun initializeForEdit(subscription: Subscription) {
+    fun loadForEdit(serviceName: String, domain: String) {
         viewModelScope.launch {
-            var logoUrl: String? = null
-            getLogoUrlUseCase(subscription.serviceInfo.domain)
-                .collect { url ->
-                    logoUrl = url
-                    _uiState.value = SubscriptionManagerUiState.Editing(
-                        isEditMode = true,
-                        originalSubscription = subscription,
-                        selectedService = kz.hashiroii.domain.usecase.subscription.ServiceSearchResult(
-                            serviceInfo = subscription.serviceInfo,
-                            logoUrl = logoUrl
-                        ),
-                        amount = subscription.amount.toString(),
-                        currency = subscription.currency,
-                        startDate = subscription.currentPaymentDate,
-                        endDate = subscription.nextPaymentDate,
-                        period = subscription.period
-                    )
-                    return@collect
-                }
+            val subscription = getSubscriptionsUseCase()
+                .first()
+                .firstOrNull {
+                    it.serviceInfo.domain == domain && it.serviceInfo.name == serviceName
+                } ?: return@launch
+
+            _uiState.value = SubscriptionManagerUiState.Editing(
+                isEditMode = true,
+                originalSubscription = subscription,
+                selectedService = ServiceSearchResult(
+                    serviceInfo = subscription.serviceInfo,
+                    logoUrl = getLogoRepository.getLogoUrl(domain)
+                ),
+                amount = subscription.amount.toString(),
+                currency = subscription.currency,
+                startDate = subscription.currentPaymentDate,
+                endDate = subscription.nextPaymentDate,
+                period = subscription.period
+            )
         }
-    }
-    
-    suspend fun getSubscriptionForEdit(serviceName: String, serviceDomain: String): Subscription? {
-        return getSubscriptionsUseCase()
-            .first()
-            .firstOrNull { 
-                it.serviceInfo.name == serviceName && it.serviceInfo.domain == serviceDomain 
-            }
     }
 
     fun onIntent(intent: SubscriptionManagerIntent) {
@@ -149,12 +144,6 @@ class SubscriptionManagerViewModel @Inject constructor(
                             serviceSearchResult = null
                         )
                     }
-                    is SubscriptionManagerIntent.Cancel -> {
-                        // Handled by navigation
-                    }
-                    is SubscriptionManagerIntent.LoadSubscription -> {
-                        // Already loaded
-                    }
                 }
             }
             else -> {
@@ -162,6 +151,8 @@ class SubscriptionManagerViewModel @Inject constructor(
             }
         }
     }
+
+    fun getLogoUrl(domain: String): String? = getLogoRepository.getLogoUrl(domain)
 
     private fun updateServiceSearch(state: SubscriptionManagerUiState.Editing, query: String) {
         _uiState.value = state.copy(
@@ -171,47 +162,45 @@ class SubscriptionManagerViewModel @Inject constructor(
         )
         
         searchJob?.cancel()
+
+        if (query.isBlank()) return
         
-        if (query.isNotBlank()) {
-            searchJob = viewModelScope.launch {
-                delay(debounceDelayMs)
-                
-                _uiState.value = state.copy(
-                    serviceSearchQuery = query,
-                    isLoading = true
-                )
-                
-                searchServiceUseCase(query)
-                    .onEach { result ->
-                        _uiState.value = SubscriptionManagerUiState.Editing(
-                            isEditMode = state.isEditMode,
-                            originalSubscription = state.originalSubscription,
-                            serviceSearchQuery = query,
-                            serviceSearchResult = result,
-                            selectedService = state.selectedService,
-                            amount = state.amount,
-                            currency = state.currency,
-                            startDate = state.startDate,
-                            endDate = state.endDate,
-                            period = state.period,
-                            isLoading = false,
-                            errorMessage = null
-                        )
-                    }
-                    .catch { e ->
-                        _uiState.value = state.copy(
-                            serviceSearchQuery = query,
-                            isLoading = false,
-                            errorMessage = e.message
-                        )
-                    }
-                    .launchIn(viewModelScope)
+        searchJob = viewModelScope.launch {
+            delay(debounceDelayMs)
+
+            val currentState = _uiState.value as? SubscriptionManagerUiState.Editing ?: return@launch
+            _uiState.value = currentState.copy(isLoading = true)
+
+            val trimmed = query.trim().lowercase()
+            val domain = if (trimmed.contains(".")) {
+                trimmed.removePrefix("http://").removePrefix("https://")
+                    .removePrefix("www.").split("/")[0]
+            } else {
+                "$trimmed.com"
             }
-        } else {
-            _uiState.value = state.copy(
+            val serviceName = if (trimmed.contains(".")) {
+                domain.split(".")[0].replaceFirstChar { it.uppercaseChar() }
+            } else {
+                trimmed.replaceFirstChar { it.uppercaseChar() }
+            }
+
+            val result = ServiceSearchResult(
+                serviceInfo = ServiceInfo(
+                    name = serviceName,
+                    domain = domain,
+                    primaryColor = 0xFF6200EE,
+                    secondaryColor = 0xFF000000,
+                    serviceType = ServiceType.OTHER
+                ),
+                logoUrl = getLogoRepository.getLogoUrl(domain)
+            )
+
+            val s = _uiState.value as? SubscriptionManagerUiState.Editing ?: return@launch
+            _uiState.value = s.copy(
                 serviceSearchQuery = query,
-                serviceSearchResult = null,
-                isLoading = false
+                serviceSearchResult = result,
+                isLoading = false,
+                errorMessage = null
             )
         }
     }

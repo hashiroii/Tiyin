@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,8 +36,6 @@ import kz.hashiroii.domain.model.service.ServiceInfo
 import kz.hashiroii.domain.model.service.ServiceType
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
-import kz.hashiroii.ui.R
-import kz.hashiroii.ui.ServiceLogo
 import kz.hashiroii.ui.util.CurrencyFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -47,10 +44,10 @@ import java.time.format.FormatStyle
 
 @Composable
 fun SubscriptionCard(
+    modifier: Modifier = Modifier,
     subscription: Subscription,
-    logoUrl: String? = null,
+    logoUrl: String,
     onClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
@@ -75,8 +72,8 @@ fun SubscriptionCard(
             ) {
                 ServiceLogo(
                     serviceInfo = subscription.serviceInfo,
-                    logoUrl = logoUrl,
                     modifier = Modifier,
+                    logoUrl = logoUrl,
                     size = 40.dp
                 )
                 
@@ -247,7 +244,6 @@ private fun SubscriptionCardLightPreview() {
                         serviceInfo = ServiceInfo(
                             name = "Spotify",
                             domain = "spotify.com",
-                            logoResId = 0,
                             primaryColor = 0xFF1DB954,
                             secondaryColor = 0xFF191414,
                             serviceType = ServiceType.STREAMING
@@ -256,9 +252,9 @@ private fun SubscriptionCardLightPreview() {
                         currency = "USD",
                         period = SubscriptionPeriod.MONTHLY,
                         nextPaymentDate = LocalDate.now().plusDays(5),
-                        currentPaymentDate = LocalDate.now().minusDays(25)
+                        currentPaymentDate = LocalDate.now().minusDays(25),
                     ),
-                    logoUrl = null
+                    logoUrl = ""
                 )
             }
         }
@@ -283,7 +279,6 @@ private fun SubscriptionCardDarkPreview() {
                         serviceInfo = ServiceInfo(
                             name = "Netflix",
                             domain = "netflix.com",
-                            logoResId = 0,
                             primaryColor = 0xFFE50914,
                             secondaryColor = 0xFF000000,
                             serviceType = ServiceType.STREAMING
@@ -292,9 +287,9 @@ private fun SubscriptionCardDarkPreview() {
                         currency = "USD",
                         period = SubscriptionPeriod.MONTHLY,
                         nextPaymentDate = LocalDate.now().plusDays(12),
-                        currentPaymentDate = LocalDate.now().minusDays(18)
+                        currentPaymentDate = LocalDate.now().minusDays(18),
                     ),
-                    logoUrl = null
+                    logoUrl = ""
                 )
             }
         }

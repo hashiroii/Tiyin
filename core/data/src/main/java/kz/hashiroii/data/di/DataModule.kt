@@ -23,6 +23,7 @@ import kz.hashiroii.domain.repository.CurrencyRepository
 import kz.hashiroii.domain.repository.FirestoreSubscriptionRepository
 import kz.hashiroii.domain.repository.NotificationRepository
 import kz.hashiroii.domain.repository.PreferencesRepository
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module

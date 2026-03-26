@@ -19,7 +19,7 @@ data class Subscription(
     val currency: String,
     val period: SubscriptionPeriod,
     val nextPaymentDate: LocalDate,
-    val currentPaymentDate: LocalDate
+    val currentPaymentDate: LocalDate,
 ) {
     fun daysUntilNextPayment(today: LocalDate = LocalDate.now()): Int {
         return if (nextPaymentDate.isAfter(today)) {

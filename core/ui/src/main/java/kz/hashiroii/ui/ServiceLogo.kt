@@ -30,9 +30,9 @@ import kz.hashiroii.domain.model.service.ServiceInfo
 @Composable
 fun ServiceLogo(
     serviceInfo: ServiceInfo,
-    logoUrl: String?,
     modifier: Modifier = Modifier,
-    size: Dp = 80.dp
+    logoUrl: String? = null,
+    size: Dp = 80.dp,
 ) {
     val context = LocalContext.current
     var imageLoadError by remember { mutableStateOf(false) }

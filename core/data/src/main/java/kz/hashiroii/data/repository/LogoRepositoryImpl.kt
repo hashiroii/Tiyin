@@ -11,42 +11,12 @@ import javax.inject.Singleton
 class LogoRepositoryImpl @Inject constructor(
     @Named("logo_dev_api_key") private val apiKey: String
 ) : LogoRepository {
-    
-    private val logoCache = mutableMapOf<String, String>()
-    
-    private fun cleanDomain(domain: String): String {
-        return domain.trim()
-            .removePrefix("http://")
-            .removePrefix("https://")
-            .removePrefix("www.")
-            .lowercase()
-    }
-    
-    override fun getLogoUrl(domain: String): Flow<String?> = flow {
-        val cleanDomain = cleanDomain(domain)
-        
-        logoCache[cleanDomain]?.let { cachedUrl ->
-            emit(cachedUrl)
-            return@flow
-        }
-        
-        val logoUrl = if (apiKey.isNotEmpty() && cleanDomain.isNotEmpty()) {
-            "https://img.logo.dev/$cleanDomain?token=$apiKey&size=256&format=png"
-        } else {
-            null
-        }
-        
-        logoUrl?.let { logoCache[cleanDomain] = it }
-        emit(logoUrl)
-    }
-    
-    override suspend fun prefetchLogos(domains: List<String>) {
-        domains.forEach { domain ->
-            val cleanDomain = cleanDomain(domain)
-            if (!logoCache.containsKey(cleanDomain) && apiKey.isNotEmpty() && cleanDomain.isNotEmpty()) {
-                val logoUrl = "https://img.logo.dev/$cleanDomain?token=$apiKey&size=256&format=png"
-                logoCache[cleanDomain] = logoUrl
-            }
-        }
+
+    override fun getLogoUrl(domain: String): String? {
+        val url = if (apiKey.isNotEmpty() && domain.isNotEmpty()) {
+            "https://img.logo.dev/$domain?token=$apiKey&size=256&format=png"
+        } else null
+        android.util.Log.d("LogoRepo", "domain=$domain apiKey=${apiKey.take(6)}... url=$url")
+        return url
     }
 }

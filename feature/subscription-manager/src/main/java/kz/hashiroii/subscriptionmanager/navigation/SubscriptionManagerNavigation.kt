@@ -15,7 +15,6 @@ fun NavGraphBuilder.subscriptionManagerScreen(
     composable<AddSubscription> { backStackEntry: NavBackStackEntry ->
         val addSubscription: AddSubscription = backStackEntry.toRoute()
         SubscriptionManagerScreenRoute(
-            subscriptionId = addSubscription.subscriptionId,
             onBackClick = onBackClick
         )
     }
