@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kz.hashiroii.domain.model.service.ServiceInfo
 import kz.hashiroii.domain.model.service.ServiceType
@@ -49,6 +52,9 @@ class SubscriptionManagerViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<SubscriptionManagerUiState> = _uiState.asStateFlow()
+
+    private val _events = Channel<SubscriptionManagerEvent>(Channel.BUFFERED)
+    val events: Flow<SubscriptionManagerEvent> = _events.receiveAsFlow()
 
     private var searchJob: Job? = null
     private val debounceDelayMs = 500L
@@ -251,8 +257,8 @@ class SubscriptionManagerViewModel @Inject constructor(
                 addSubscriptionUseCase(subscription)
             }
 
-            _uiState.value = if (result.isSuccess) {
-                SubscriptionManagerUiState.Success
+            if (result.isSuccess) {
+                _events.send(SubscriptionManagerEvent.NavigateBack)
             } else {
                 state.copy(
                     isLoading = false,
@@ -273,8 +279,8 @@ class SubscriptionManagerViewModel @Inject constructor(
             
             val result = deleteSubscriptionUseCase(originalSubscription)
             
-            _uiState.value = if (result.isSuccess) {
-                SubscriptionManagerUiState.Success
+            if (result.isSuccess) {
+                _events.send(SubscriptionManagerEvent.NavigateBack)
             } else {
                 state.copy(
                     isLoading = false,
