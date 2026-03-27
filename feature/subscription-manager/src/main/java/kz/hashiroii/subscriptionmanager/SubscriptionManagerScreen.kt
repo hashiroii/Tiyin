@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kz.hashiroii.designsystem.theme.TiyinTheme
 import kz.hashiroii.domain.model.service.SubscriptionPeriod
 import kz.hashiroii.ui.R as UiR
@@ -71,7 +72,7 @@ fun SubscriptionManagerScreenRoute(
     viewModel: SubscriptionManagerViewModel = hiltViewModel(),
     onDeleteSubscriptionReady: ((() -> Unit) -> Unit)? = null
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(serviceName, serviceDomain) {
         if (serviceName != null && serviceDomain != null) {
@@ -81,7 +82,7 @@ fun SubscriptionManagerScreenRoute(
 
     LaunchedEffect(uiState) {
         val currentState = uiState
-        if (currentState is SubscriptionManagerUiState.Editing && currentState.isEditMode) {
+        if (currentState is SubscriptionManagerUiState.Success && currentState.isEditMode) {
             onDeleteSubscriptionReady?.invoke {
                 viewModel.onIntent(SubscriptionManagerIntent.DeleteSubscription)
             }
@@ -129,20 +130,15 @@ fun SubscriptionManagerScreen(
                 }
             }
 
-            is SubscriptionManagerUiState.Editing -> {
+            is SubscriptionManagerUiState.Success -> {
                 SubscriptionManagerContent(
                     state = state,
                     onIntent = onIntent,
-                    onBackClick = onBackClick,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
                     getLogo = getLogo,
                 )
-            }
-
-            is SubscriptionManagerUiState.Success -> {
-                // Navigation handled by LaunchedEffect
             }
 
             is SubscriptionManagerUiState.Error -> {
@@ -166,10 +162,9 @@ fun SubscriptionManagerScreen(
 @Composable
 private fun SubscriptionManagerContent(
     modifier: Modifier = Modifier,
-    state: SubscriptionManagerUiState.Editing,
+    state: SubscriptionManagerUiState.Success,
     onIntent: (SubscriptionManagerIntent) -> Unit,
     getLogo: (String) -> String?,
-    onBackClick: () -> Unit,
 ) {
 
     val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
@@ -191,22 +186,6 @@ private fun SubscriptionManagerContent(
 
     val isAmountInvalid = remember(state.amount) {
         state.amount.isNotBlank() && !isAmountValid
-    }
-
-    val isCurrencyValid = remember(state.currency) {
-        state.currency.isNotBlank()
-    }
-
-    val isStartDateValid = remember(state.startDate) {
-        state.startDate != null
-    }
-
-    val isEndDateValid = remember(state.endDate, state.startDate) {
-        state.endDate != null && (state.startDate == null || !state.endDate.isBefore(state.startDate))
-    }
-
-    val isPeriodValid = remember(state.period) {
-        true
     }
 
     Column(
@@ -673,7 +652,7 @@ private fun SubscriptionManagerScreenAddingLightPreview() {
             color = MaterialTheme.colorScheme.background
         ) {
             SubscriptionManagerScreen(
-                uiState = SubscriptionManagerUiState.Editing(
+                uiState = SubscriptionManagerUiState.Success(
                     isEditMode = false,
                     originalSubscription = null,
                     serviceSearchQuery = "",

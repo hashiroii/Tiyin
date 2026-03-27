@@ -9,7 +9,7 @@ import java.time.LocalDate
 sealed interface SubscriptionManagerUiState {
     data object Loading : SubscriptionManagerUiState
     
-    data class Editing(
+    data class Success(
         val isEditMode: Boolean,
         val originalSubscription: Subscription?,
         val serviceSearchQuery: String = "",
@@ -24,9 +24,7 @@ sealed interface SubscriptionManagerUiState {
         val errorMessage: String? = null,
         val activeDialog: ActiveDialog? = null
     ) : SubscriptionManagerUiState
-    
-    data object Success : SubscriptionManagerUiState
-    
+
     data class Error(
         val message: String
     ) : SubscriptionManagerUiState

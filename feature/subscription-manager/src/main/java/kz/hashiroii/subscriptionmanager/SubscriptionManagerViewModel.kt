@@ -45,7 +45,7 @@ class SubscriptionManagerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SubscriptionManagerUiState>(
-        SubscriptionManagerUiState.Editing(
+        SubscriptionManagerUiState.Success(
             isEditMode = false,
             originalSubscription = null,
             currency = "USD"
@@ -67,7 +67,7 @@ class SubscriptionManagerViewModel @Inject constructor(
         viewModelScope.launch {
             getCurrencyUseCase().collect { currency ->
                 val state = _uiState.value
-                if (state is SubscriptionManagerUiState.Editing && state.currency != currency) {
+                if (state is SubscriptionManagerUiState.Success && state.currency != currency) {
                     _uiState.value = state.copy(currency = currency)
                 }
             }
@@ -82,7 +82,7 @@ class SubscriptionManagerViewModel @Inject constructor(
                     it.serviceInfo.domain == domain && it.serviceInfo.name == serviceName
                 } ?: return@launch
 
-            _uiState.value = SubscriptionManagerUiState.Editing(
+            _uiState.value = SubscriptionManagerUiState.Success(
                 isEditMode = true,
                 originalSubscription = subscription,
                 selectedService = ServiceSearchResult(
@@ -100,7 +100,7 @@ class SubscriptionManagerViewModel @Inject constructor(
 
     fun onIntent(intent: SubscriptionManagerIntent) {
         when (val state = _uiState.value) {
-            is SubscriptionManagerUiState.Editing -> {
+            is SubscriptionManagerUiState.Success -> {
                 when (intent) {
                     is SubscriptionManagerIntent.UpdateServiceSearchQuery -> {
                         updateServiceSearch(state, intent.query)
@@ -165,7 +165,7 @@ class SubscriptionManagerViewModel @Inject constructor(
 
     fun getLogoUrl(domain: String): String? = getLogoRepository.getLogoUrl(domain)
 
-    private fun updateServiceSearch(state: SubscriptionManagerUiState.Editing, query: String) {
+    private fun updateServiceSearch(state: SubscriptionManagerUiState.Success, query: String) {
         _uiState.value = state.copy(
             serviceSearchQuery = query,
             serviceSearchResult = null,
@@ -179,7 +179,7 @@ class SubscriptionManagerViewModel @Inject constructor(
         searchJob = viewModelScope.launch {
             delay(debounceDelayMs)
 
-            val currentState = _uiState.value as? SubscriptionManagerUiState.Editing ?: return@launch
+            val currentState = _uiState.value as? SubscriptionManagerUiState.Success ?: return@launch
             _uiState.value = currentState.copy(isLoading = true)
 
             val trimmed = query.trim().lowercase()
@@ -206,7 +206,7 @@ class SubscriptionManagerViewModel @Inject constructor(
                 logoUrl = getLogoRepository.getLogoUrl(domain)
             )
 
-            val s = _uiState.value as? SubscriptionManagerUiState.Editing ?: return@launch
+            val s = _uiState.value as? SubscriptionManagerUiState.Success ?: return@launch
             _uiState.value = s.copy(
                 serviceSearchQuery = query,
                 serviceSearchResult = result,
@@ -216,7 +216,7 @@ class SubscriptionManagerViewModel @Inject constructor(
         }
     }
 
-    private fun saveSubscription(state: SubscriptionManagerUiState.Editing) {
+    private fun saveSubscription(state: SubscriptionManagerUiState.Success) {
         val selectedService = state.selectedService ?: run {
             _uiState.value = state.copy(errorMessage = "Please select a service")
             return
@@ -273,7 +273,7 @@ class SubscriptionManagerViewModel @Inject constructor(
         }
     }
     
-    private fun deleteSubscription(state: SubscriptionManagerUiState.Editing) {
+    private fun deleteSubscription(state: SubscriptionManagerUiState.Success) {
         val originalSubscription = state.originalSubscription ?: run {
             _uiState.value = state.copy(errorMessage = "No subscription to delete")
             return
