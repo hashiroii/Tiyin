@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kz.hashiroii.data.local.SubscriptionDao
-import kz.hashiroii.data.local.SubscriptionRoomMapper.toEntity
-import kz.hashiroii.data.local.SubscriptionRoomMapper.toRoomEntity
+import kz.hashiroii.data.mapper.SubscriptionRoomMapper.toEntity
+import kz.hashiroii.data.mapper.SubscriptionRoomMapper.toRoomEntity
 import kz.hashiroii.data.mapper.SubscriptionMapper
 import kz.hashiroii.data.service.NotificationListener
 import kz.hashiroii.data.service.SubscriptionDetectionService

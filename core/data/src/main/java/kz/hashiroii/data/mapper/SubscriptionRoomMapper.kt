@@ -1,7 +1,7 @@
-package kz.hashiroii.data.local
+package kz.hashiroii.data.mapper
 
+import kz.hashiroii.data.local.SubscriptionRoomEntity
 import kz.hashiroii.data.model.SubscriptionEntity
-import java.time.LocalDate
 
 object SubscriptionRoomMapper {
 

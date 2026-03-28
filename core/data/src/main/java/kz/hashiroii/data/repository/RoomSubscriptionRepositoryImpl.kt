@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kz.hashiroii.data.local.SubscriptionDao
-import kz.hashiroii.data.local.SubscriptionRoomMapper.toEntity
-import kz.hashiroii.data.local.SubscriptionRoomMapper.toRoomEntity
+import kz.hashiroii.data.mapper.SubscriptionRoomMapper.toEntity
+import kz.hashiroii.data.mapper.SubscriptionRoomMapper.toRoomEntity
 import kz.hashiroii.data.mapper.SubscriptionMapper
 import kz.hashiroii.domain.model.service.Subscription
 import kz.hashiroii.domain.repository.AuthRepository
